@@ -119,10 +119,17 @@ footer{text-align:center;padding:40px 0 0;border-top:1px solid rgba(201,147,58,.
 /* Vue calendrier */
 .cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
 .cal-title{text-align:center;font-size:26px;color:var(--cream);font-weight:300;letter-spacing:2px;}
+.cal-sel{position:relative;display:inline-block;padding:0 4px;border-radius:4px;border-bottom:1px dotted rgba(201,147,58,.5);cursor:pointer;}
+.cal-sel:hover{color:var(--gold2);background:rgba(201,147,58,.06);}
+.cal-sel select{position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px;}
+.cal-sel option{background:#1e1810;color:#f0e8d5;}
+.cal-mid{display:flex;justify-content:center;align-items:center;gap:4px;}
+.cal-moon{display:block;flex:none;}
+.cal-h{width:5ch;font-family:'Space Mono',monospace;font-size:10px;color:var(--gold2);white-space:nowrap;}
 .cal-nav{background:transparent;border:1px solid rgba(201,147,58,.3);color:var(--gold);width:38px;height:38px;border-radius:4px;font-size:22px;line-height:1;cursor:pointer;}
 .cal-nav:hover{background:rgba(201,147,58,.08);}
 .cal-sep{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);padding:14px 8px 6px;border-bottom:1px solid rgba(201,147,58,.25);}
-.cal-row{display:grid;grid-template-columns:30px 38px 1fr auto 10px 34px;gap:10px;align-items:center;padding:7px 8px;border-bottom:1px solid rgba(201,147,58,.06);cursor:pointer;font-size:15px;}
+.cal-row{display:grid;grid-template-columns:30px 38px 70px minmax(20px,1fr) 118px 10px 34px;gap:10px;align-items:center;padding:7px 8px;border-bottom:1px solid rgba(201,147,58,.06);cursor:pointer;font-size:15px;}
 .cal-row.we{background:rgba(120,100,180,.14);}
 .cal-row.we .cal-jfr,.cal-row.we .cal-jmg{color:#b3a8cc;}
 .cal-row:hover{background:rgba(201,147,58,.06);}
@@ -130,14 +137,14 @@ footer{text-align:center;padding:40px 0 0;border-top:1px solid rgba(201,147,58,.
 .cal-num{font-family:'Space Mono',monospace;font-size:13px;color:var(--cream);text-align:right;}
 .cal-jfr{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;}
 .cal-jmg{color:var(--muted);font-style:italic;}
-.cal-v{color:var(--cream);text-align:right;white-space:nowrap;}
+.cal-v{color:var(--cream);text-align:left;white-space:nowrap;}
 .cal-v span{font-family:'Space Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:1px;margin-right:6px;}
 .cal-row .dot{width:9px;height:9px;}
 .cal-nani{font-family:'Space Mono',monospace;font-size:11px;color:var(--gold2);text-align:right;}
 .dot-f{background:#6aad6e;}.dot-n{background:#c06060;}.dot-x{background:#7a9ab5;}
 .cal-legend{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-top:14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;}
 .cal-legend .dot{width:9px;height:9px;display:inline-block;vertical-align:middle;margin-right:6px;}
-@media(max-width:480px){.cal-row{grid-template-columns:24px 34px 1fr 9px 30px;gap:8px;}.cal-jmg{display:none;}}
+@media(max-width:480px){.cpanel{padding:20px 12px;}.cal-row{grid-template-columns:16px 22px minmax(20px,1fr) 116px 9px 14px;gap:6px;padding:7px 4px;}.cal-jmg{display:none;}}
 ::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:rgba(201,147,58,.3);border-radius:3px;}
 </style>
 </head>
@@ -5967,7 +5974,7 @@ function compute(date) {
   var jour = JMG[date.getDay()];
   return {
     v: v, mi: mi, moisNom: nl[3], moisNum: nl[2], delta: delta,
-    moon: {icon: mIcons[phI], name: mNames[phI], age: delta + 1},
+    moon: {icon: mIcons[phI], name: mNames[phI], age: delta + 1, ph: phI},
     jour: jour
   };
 }
@@ -6139,11 +6146,107 @@ function calPick(s) {
   calculate();
 }
 
+function calSetMY() {
+  CAL_M = parseInt(el('calSelM').value, 10);
+  CAL_Y = parseInt(el('calSelY').value, 10);
+  renderCalendar();
+}
+
+// Delta T = TT - UT en secondes (valeurs Espenak-Meeus, interpolation lineaire)
+function deltaT(y) {
+  var Y = [1600, 1650, 1700, 1750, 1800, 1850, 1875, 1900, 1925, 1950, 1975, 2000, 2025, 2050];
+  var D = [120, 50, 9, 13, 14, 7, -2, -3, 24, 29, 46, 64, 69, 75];
+  for (var i = 1; i < Y.length; i++) {
+    if (y <= Y[i]) return D[i - 1] + (D[i] - D[i - 1]) * (y - Y[i - 1]) / (Y[i] - Y[i - 1]);
+  }
+  return D[D.length - 1];
+}
+
+// Instant (JDE) d'une phase principale - Meeus, Astronomical Algorithms, ch. 49
+// q : 0 = nouvelle lune, 1 = premier quartier, 2 = pleine lune, 3 = dernier quartier
+function phaseJDE(kInt, q) {
+  var k = kInt + q / 4, T = k / 1236.85, T2 = T * T, T3 = T2 * T, T4 = T3 * T;
+  var r = Math.PI / 180, sin = Math.sin, cos = Math.cos, c;
+  var jde = 2451550.09766 + 29.530588861 * k + 0.00015437 * T2 - 0.00000015 * T3 + 0.00000000073 * T4;
+  var E = 1 - 0.002516 * T - 0.0000074 * T2;
+  var M = (2.5534 + 29.1053567 * k - 0.0000014 * T2 - 0.00000011 * T3) * r;
+  var Mp = (201.5643 + 385.81693528 * k + 0.0107582 * T2 + 0.00001238 * T3 - 0.000000058 * T4) * r;
+  var F = (160.7108 + 390.67050284 * k - 0.0016118 * T2 - 0.00000227 * T3 + 0.000000011 * T4) * r;
+  var Om = (124.7746 - 1.56375588 * k + 0.0020672 * T2 + 0.00000215 * T3) * r;
+  if (q === 0 || q === 2) {
+    var a = (q === 0) ? [-0.4072, 0.17241, 0.01608, 0.01039, 0.00739, -0.00514, 0.00208]
+                      : [-0.40614, 0.17302, 0.01614, 0.01043, 0.00734, -0.00515, 0.00209];
+    c = a[0] * sin(Mp) + a[1] * E * sin(M) + a[2] * sin(2 * Mp) + a[3] * sin(2 * F) +
+        a[4] * E * sin(Mp - M) + a[5] * E * sin(Mp + M) + a[6] * E * E * sin(2 * M) -
+        0.00111 * sin(Mp - 2 * F) - 0.00057 * sin(Mp + 2 * F) + 0.00056 * E * sin(2 * Mp + M) -
+        0.00042 * sin(3 * Mp) + 0.00042 * E * sin(M + 2 * F) + 0.00038 * E * sin(M - 2 * F) -
+        0.00024 * E * sin(2 * Mp - M) - 0.00017 * sin(Om) - 0.00007 * sin(Mp + 2 * M) +
+        0.00004 * sin(2 * Mp - 2 * F) + 0.00004 * sin(3 * M) + 0.00003 * sin(Mp + M - 2 * F) +
+        0.00003 * sin(2 * Mp + 2 * F) - 0.00003 * sin(Mp + M + 2 * F) + 0.00003 * sin(Mp - M + 2 * F) -
+        0.00002 * sin(Mp - M - 2 * F) - 0.00002 * sin(3 * Mp + M) + 0.00002 * sin(4 * Mp);
+  } else {
+    c = -0.62801 * sin(Mp) + 0.17172 * E * sin(M) - 0.01183 * E * sin(Mp + M) + 0.00862 * sin(2 * Mp) +
+        0.00804 * sin(2 * F) + 0.00454 * E * sin(Mp - M) + 0.00204 * E * E * sin(2 * M) -
+        0.0018 * sin(Mp - 2 * F) - 0.0007 * sin(Mp + 2 * F) - 0.0004 * sin(3 * Mp) -
+        0.00034 * E * sin(2 * Mp - M) + 0.00032 * E * sin(M + 2 * F) + 0.00032 * E * sin(M - 2 * F) -
+        0.00028 * E * E * sin(Mp + 2 * M) + 0.00027 * E * sin(2 * Mp + M) - 0.00017 * sin(Om) -
+        0.00005 * sin(Mp - M - 2 * F) + 0.00004 * sin(2 * Mp + 2 * F) - 0.00004 * sin(Mp + M + 2 * F) +
+        0.00004 * sin(Mp - 2 * M) + 0.00003 * sin(Mp + M - 2 * F) + 0.00003 * sin(3 * M) +
+        0.00002 * sin(2 * Mp - 2 * F) + 0.00002 * sin(Mp - M + 2 * F) - 0.00002 * sin(3 * Mp + M);
+    var W = 0.00306 - 0.00038 * E * cos(M) + 0.00026 * cos(Mp) - 0.00002 * cos(Mp - M) +
+            0.00002 * cos(Mp + M) + 0.00002 * cos(2 * F);
+    c += (q === 1) ? W : -W;
+  }
+  var add = 0.000325 * sin((299.77 + 0.107408 * k - 0.009173 * T2) * r);
+  var A = [251.88, 0.016321, 0.000165, 251.83, 26.651886, 0.000164, 349.42, 36.412478, 0.000126,
+           84.66, 18.206239, 0.00011, 141.74, 53.303771, 0.000062, 207.14, 2.453732, 0.00006,
+           154.84, 7.30686, 0.000056, 34.52, 27.261239, 0.000047, 207.19, 0.121824, 0.000042,
+           291.34, 1.844379, 0.00004, 161.72, 24.198154, 0.000037, 239.56, 25.513099, 0.000035,
+           331.55, 3.592518, 0.000023];
+  for (var i = 0; i < A.length; i += 3) add += A[i + 2] * sin((A[i] + A[i + 1] * k) * r);
+  return jde + c + add;
+}
+
+// Phases principales du mois (y, m) dans le fuseau de l'appareil : cle = jour du mois
+function monthPhases(y, m) {
+  var noms = ['Nouvelle lune', 'Premier quartier', 'Pleine lune', 'Dernier quartier'];
+  var res = {};
+  var k0 = Math.floor((y + (m + 0.5) / 12 - 2000) * 12.3685);
+  for (var k = k0 - 2; k <= k0 + 2; k++) {
+    for (var q = 0; q < 4; q++) {
+      var ms = Math.round(((phaseJDE(k, q) - 2440587.5) * 86400 - deltaT(y)) / 60) * 60000;
+      var t = new Date(ms);
+      if (t.getFullYear() === y && t.getMonth() === m) {
+        res[t.getDate()] = {ph: q * 2, nom: noms[q], heure: pad2(t.getHours()) + ':' + pad2(t.getMinutes())};
+      }
+    }
+  }
+  return res;
+}
+
+// Lune dessinee (SVG 20px) pour l'index de phase ph (0-7) calcule dans compute()
+function moonSvg(ph, name) {
+  var html = '<svg class="cal-moon" width="20" height="20" viewBox="0 0 20 20"><title>' + name + '</title>' +
+             '<circle cx="10" cy="10" r="8" fill="#2a2418" stroke="rgba(240,232,213,.55)" stroke-width="1"/>';
+  if (ph === 4) {
+    html += '<circle cx="10" cy="10" r="8" fill="#f0e8d5"/>';
+  } else if (ph !== 0) {
+    var waxing = ph < 4;
+    var k = (1 - Math.cos(2 * Math.PI * ph / 8)) / 2;
+    var rx = (Math.abs(1 - 2 * k) * 8).toFixed(2);
+    var limb = waxing ? 1 : 0;
+    var term = ((k < 0.5) === waxing) ? 0 : 1;
+    html += '<path d="M10 2 A8 8 0 0 ' + limb + ' 10 18 A' + rx + ' 8 0 0 ' + term + ' 10 2 Z" fill="#f0e8d5"/>';
+  }
+  return html + '</svg>';
+}
+
 function renderCalendar() {
   var moisFr = ['Janvier','F&eacute;vrier','Mars','Avril','Mai','Juin',
                 'Juillet','Ao&ucirc;t','Septembre','Octobre','Novembre','D&eacute;cembre'];
   var sel = el('dp').value;
   var nb = new Date(CAL_Y, CAL_M + 1, 0).getDate();
+  var phases = monthPhases(CAL_Y, CAL_M);
   var prevMois = '';
   var rows = '';
   for (var d = 1; d <= nb; d++) {
@@ -6156,7 +6259,7 @@ function renderCalendar() {
                '<div class="cal-jmg">' + res.jour.mg + '</div>';
     // Avant la premiere NL de la table : pas de vintana calculable
     if (res.delta < 0) {
-      rows += '<div class="cal-row' + we + '" style="cursor:default">' + head + '<div class="cal-v">-</div><div></div><div></div></div>';
+      rows += '<div class="cal-row' + we + '" style="cursor:default">' + head + '<div></div><div class="cal-v">-</div><div></div><div></div></div>';
       continue;
     }
     if (res.moisNom !== prevMois) {
@@ -6164,18 +6267,31 @@ function renderCalendar() {
       prevMois = res.moisNom;
     }
     var v = res.v;
-    var dc = (v.f === true) ? 'dot-f' : (v.f === false) ? 'dot-n' : 'dot-x';
+    var pz = phases[d];
+    var dc =(v.f === true) ? 'dot-f' : (v.f === false) ? 'dot-n' : 'dot-x';
     rows += '<div class="cal-row' + we + (s === sel ? ' active' : '') + '" onclick="calPick(\'' + s + '\')">' + head +
+            '<div class="cal-mid">' + moonSvg(pz ? pz.ph : res.moon.ph, pz ? pz.nom + ' ' + pz.heure : res.moon.name) +
+            '<span class="cal-h">' + (pz ? pz.heure : '') + '</span></div>' +
             '<div class="cal-v"><span>' + jourNom(v.j, v.total) + '</span>' + v.nom + '</div>' +
             '<div class="dot ' + dc + '"></div>' +
             '<div class="cal-nani">' + (res.delta + 1) + '</div></div>';
+  }
+
+  var optM = '', optY = '';
+  for (var m = 0; m < 12; m++) {
+    optM += '<option value="' + m + '"' + (m === CAL_M ? ' selected' : '') + '>' + moisFr[m] + '</option>';
+  }
+  for (var y = 1600; y <= 2050; y++) {
+    optY += '<option value="' + y + '"' + (y === CAL_Y ? ' selected' : '') + '>' + y + '</option>';
   }
 
   el('rp').innerHTML =
     '<div class="cpanel anim">' +
       '<div class="cal-head">' +
         '<button class="cal-nav" onclick="calMove(-1)">&#8249;</button>' +
-        '<div class="cal-title">' + moisFr[CAL_M] + ' ' + CAL_Y +
+        '<div class="cal-title">' +
+          '<span class="cal-sel">' + moisFr[CAL_M] + '<select id="calSelM" onchange="calSetMY()">' + optM + '</select></span> ' +
+          '<span class="cal-sel">' + CAL_Y + '<select id="calSelY" onchange="calSetMY()">' + optY + '</select></span>' +
           '<div class="vmeta">NIVEAU ' + NIVEAU + '</div></div>' +
         '<button class="cal-nav" onclick="calMove(1)">&#8250;</button>' +
       '</div>' +

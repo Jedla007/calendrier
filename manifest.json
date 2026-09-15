@@ -1,0 +1,22 @@
+{
+  "name": "Alimanaka — Vintana Malagasy",
+  "short_name": "Alimanaka",
+  "description": "Fanandroana Malagasy — Méthode Isa Lava. Calcul du Vintana selon le calendrier lunaire malgache.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0d0b07",
+  "theme_color": "#c9933a",
+  "orientation": "portrait-primary",
+  "lang": "fr",
+  "categories": ["lifestyle", "utilities"],
+  "icons": [
+    { "src": "icons/icon-72.png",  "sizes": "72x72",   "type": "image/png" },
+    { "src": "icons/icon-96.png",  "sizes": "96x96",   "type": "image/png" },
+    { "src": "icons/icon-128.png", "sizes": "128x128", "type": "image/png" },
+    { "src": "icons/icon-144.png", "sizes": "144x144", "type": "image/png" },
+    { "src": "icons/icon-152.png", "sizes": "152x152", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

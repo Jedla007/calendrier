@@ -145,6 +145,20 @@ footer{text-align:center;padding:40px 0 0;border-top:1px solid rgba(201,147,58,.
 .cal-legend{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-top:14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;}
 .cal-legend .dot{width:9px;height:9px;display:inline-block;vertical-align:middle;margin-right:6px;}
 @media(max-width:480px){.cpanel{padding:20px 12px;}.cal-row{grid-template-columns:16px 22px minmax(20px,1fr) 116px 9px 14px;gap:6px;padding:7px 4px;}.cal-jmg{display:none;}}
+/* Profils */
+input[type=text]{width:100%;background:var(--surface2);border:1px solid rgba(201,147,58,.2);color:var(--cream);padding:11px 13px;font-family:'Space Mono',monospace;font-size:13px;border-radius:4px;outline:none;margin-bottom:9px;}
+input[type=text]:focus{border-color:var(--gold);}
+.pf-sel{width:100%;background:var(--surface2);border:1px solid rgba(201,147,58,.2);color:var(--cream);padding:10px 12px;font-family:'Space Mono',monospace;font-size:12px;border-radius:4px;outline:none;margin-bottom:9px;}
+.pf-info{font-size:13px;line-height:1.6;color:var(--muted);margin-bottom:10px;}
+.pf-info b{color:var(--gold2);font-weight:400;}
+.pf-modal{position:fixed;inset:0;background:rgba(5,4,2,.85);display:flex;align-items:center;justify-content:center;z-index:10;padding:16px;}
+.pf-box{width:100%;max-width:380px;}
+.pf-lbl{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.pf-err{color:#c06060;font-size:13px;min-height:18px;margin-bottom:6px;}
+.pl-row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid rgba(201,147,58,.08);font-size:14px;}
+.pl-k{color:var(--muted);}
+.pl-f{color:#8ac88e;}.pl-n{color:#c08080;}.pl-x{color:#7a9ab5;}
+.pl-note{margin-top:10px;font-size:14px;line-height:1.7;}
 ::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:rgba(201,147,58,.3);border-radius:3px;}
 </style>
 </head>
@@ -157,6 +171,12 @@ footer{text-align:center;padding:40px 0 0;border-top:1px solid rgba(201,147,58,.
 </header>
 <div class="layout">
   <div class="left-panel">
+    <div class="panel">
+      <div class="ptitle">Profil</div>
+      <select class="pf-sel" id="pfSel" onchange="pfLoad(parseInt(this.value,10))"></select>
+      <div class="pf-info" id="pfInfo"></div>
+      <button class="btn-s" style="margin:0" onclick="pfOpen()">+ Nouveau profil</button>
+    </div>
     <div class="panel">
       <div class="ptitle">Choisir une date</div>
       <input type="date" id="dp" min="1600-01-16" max="2050-12-14"/>
@@ -216,6 +236,18 @@ footer{text-align:center;padding:40px 0 0;border-top:1px solid rgba(201,147,58,.
   <div>Alimanaka · Fanandroana Malagasy · Méthode Isa Lava</div>
   <div style="margin-top:5px;opacity:.5">"Vintana tsy namono — Les astres ne blessent pas, le destin ne tue point"</div>
 </footer>
+</div>
+<div class="pf-modal" id="pfModal" style="display:none">
+  <div class="panel pf-box">
+    <div class="ptitle">Nouveau profil</div>
+    <div class="pf-lbl">Nom</div>
+    <input type="text" id="pfNom" maxlength="40"/>
+    <div class="pf-lbl">Date de naissance</div>
+    <input type="date" id="pfNaiss" min="1600-01-16" max="2050-12-14"/>
+    <div class="pf-err" id="pfErr"></div>
+    <button class="btn-p" onclick="pfSave()">&#10022; Enregistrer le profil</button>
+    <button class="btn-s" id="pfCancel" style="margin:7px 0 0" onclick="pfClose()">Annuler</button>
+  </div>
 </div>
 <script>
 
@@ -5913,6 +5945,7 @@ function setNiveau(n) {
   } else {
     desc.innerHTML = tag + 'Le 1er jour du mois = toujours le jour de la nouvelle lune.';
   }
+  pfRender();
   if (CAL_ON) { renderCalendar(); return; }
   var val = document.getElementById('dp').value;
   if (val && document.getElementById('pMoon').style.display !== 'none') calculate();
@@ -6073,6 +6106,7 @@ function calculate() {
       '</div>' +
       '<div class="vdesc">' + info.desc + '</div>' +
     '</div>' +
+    buildProfil(res, date) +
     actsHtml +
     buildNaninanana(moon, delta);
 }
@@ -6304,8 +6338,161 @@ function renderCalendar() {
     '</div>';
 }
 
+// =======================================
+// PROFILS ET LECTURE PERSONNELLE (ES5)
+// =======================================
+
+var PROFILS = [];
+var PF_ACTIF = -1;
+var PF_KEY = 'alimanaka_profils';
+var PF_KEY_ACTIF = 'alimanaka_profil_actif';
+
+// Andro manindry : jours de semaine nefastes du vintana natal (getDay : 0 = dimanche)
+var MANINDRY = {
+  'Alahamady':[4], 'Adaoro':[4], 'Adizaoza':[5,6], 'Asorotany':[6,0],
+  'Alahasaty':[4], 'Asombola':[2], 'Adimizana':[3], 'Alakarabo':[3],
+  'Alakaosy':[1], 'Adijady':[6], 'Adalo':[3], 'Alohotsy':[4,5]
+};
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function pfStore() {
+  try {
+    localStorage.setItem(PF_KEY, JSON.stringify(PROFILS));
+    localStorage.setItem(PF_KEY_ACTIF, String(PF_ACTIF));
+  } catch (e) {}
+}
+
+function pfDate(s) {
+  var p = s.split('-');
+  return new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10));
+}
+
+// Vintana du jour natal et du mois natal (meme calcul que pour une date)
+function pfNatal(pf) {
+  var r = compute(pfDate(pf.naissance));
+  return {jour: r.v.nom, jn: jourNom(r.v.j, r.v.total), mois: r.moisNom};
+}
+
+function pfRender() {
+  var sel = el('pfSel');
+  var html = '';
+  for (var i = 0; i < PROFILS.length; i++) {
+    html += '<option value="' + i + '"' + (i === PF_ACTIF ? ' selected' : '') + '>' + esc(PROFILS[i].nom) + '</option>';
+  }
+  sel.innerHTML = html;
+  if (PF_ACTIF < 0) { el('pfInfo').innerHTML = ''; return; }
+  var pf = PROFILS[PF_ACTIF];
+  var n = pfNatal(pf);
+  var d = pf.naissance.split('-');
+  el('pfInfo').innerHTML = 'N&eacute;(e) le ' + d[2] + '/' + d[1] + '/' + d[0] + '<br>' +
+    'Vintana du jour : <b>' + n.jn + ' ' + n.jour + '</b><br>' +
+    'Mois natal : <b>' + n.mois + '</b>';
+}
+
+function pfLoad(i) {
+  PF_ACTIF = i;
+  pfStore();
+  pfRender();
+  if (el('pMoon').style.display !== 'none' && !CAL_ON) calculate();
+}
+
+function pfOpen() {
+  el('pfNom').value = '';
+  el('pfNaiss').value = '';
+  el('pfErr').innerHTML = '';
+  el('pfCancel').style.display = PROFILS.length ? 'block' : 'none';
+  el('pfModal').style.display = 'flex';
+}
+
+function pfClose() {
+  if (!PROFILS.length) return;
+  el('pfModal').style.display = 'none';
+}
+
+function pfSave() {
+  var nom = el('pfNom').value.replace(/^\s+|\s+$/g, '');
+  var naiss = el('pfNaiss').value;
+  if (!nom) { el('pfErr').innerHTML = 'Indiquez un nom.'; return; }
+  if (!naiss || naiss < '1600-01-16' || naiss > '2050-12-14') {
+    el('pfErr').innerHTML = 'Date de naissance entre 1600 et 2050.'; return;
+  }
+  PROFILS.push({nom: nom, naissance: naiss});
+  el('pfModal').style.display = 'none';
+  pfLoad(PROFILS.length - 1);
+}
+
+function pfInit() {
+  try {
+    var s = localStorage.getItem(PF_KEY);
+    if (s) PROFILS = JSON.parse(s) || [];
+    PF_ACTIF = parseInt(localStorage.getItem(PF_KEY_ACTIF), 10);
+  } catch (e) { PROFILS = []; }
+  if (!(PF_ACTIF >= 0 && PF_ACTIF < PROFILS.length)) PF_ACTIF = PROFILS.length ? 0 : -1;
+  pfRender();
+  if (!PROFILS.length) pfOpen();
+}
+
+// Rang du vintana consulte compte depuis le vintana natal (natal = 1)
+// 6 = Manarina, 7 = Mandratra, 8 = Mamelona
+function pfRel(natal, consulte, memeMois) {
+  var r = (findVOIndex(consulte) - findVOIndex(natal) + 12) % 12 + 1;
+  if (r === 6) return {nom: 'Manarina', t: 'corrige et harmonise', c: 'f'};
+  if (r === 7) return {nom: 'Mandratra', t: 'opposition', c: 'n'};
+  if (r === 8) return {nom: 'Mamelona', t: 'nourrit et revitalise', c: 'f'};
+  if (r === 1 && memeMois) return {nom: 'Mois natal', t: 'renouveau', c: 'f'};
+  return {nom: 'Milamina', t: 'neutre', c: 'x'};
+}
+
+function buildProfil(res, date) {
+  if (PF_ACTIF < 0) return '';
+  var pf = PROFILS[PF_ACTIF];
+  var n = pfNatal(pf);
+  var axes = [
+    ['Mois natal (' + n.mois + ') &harr; mois (' + res.moisNom + ')', pfRel(n.mois, res.moisNom, true)],
+    ['Mois natal (' + n.mois + ') &harr; jour (' + res.v.nom + ')', pfRel(n.mois, res.v.nom, false)],
+    ['Jour natal (' + n.jour + ') &harr; mois (' + res.moisNom + ')', pfRel(n.jour, res.moisNom, false)],
+    ['Jour natal (' + n.jour + ') &harr; jour (' + res.v.nom + ')', pfRel(n.jour, res.v.nom, false)]
+  ];
+  var nbF = 0, nbN = 0, rows = '';
+  for (var i = 0; i < axes.length; i++) {
+    var a = axes[i][1];
+    if (a.c === 'f') nbF++;
+    if (a.c === 'n') nbN++;
+    rows += '<div class="pl-row"><span class="pl-k">' + axes[i][0] + '</span>' +
+      '<span class="pl-' + a.c + '">' + a.nom + ' &middot; ' + a.t + '</span></div>';
+  }
+  var notes = '';
+  var rj = axes[3][1].nom, rm = axes[1][1].nom;
+  if (rj === 'Mandratra' && rm === 'Mandratra') {
+    notes += '<div class="pl-note pl-n">&#9888; Double choc d\'opposition (jour natal et mois natal) : &eacute;viter absolument de d&eacute;marrer un projet.</div>';
+  } else if (axes[3][1].c === 'f' && axes[1][1].c === 'f') {
+    notes += '<div class="pl-note pl-f">&#10022; Double harmonie : le jour soutient &agrave; la fois votre vintana du jour et votre mois natal.</div>';
+  }
+  var man = MANINDRY[n.jour] || [];
+  var manindry = false;
+  for (var k = 0; k < man.length; k++) { if (man[k] === date.getDay()) manindry = true; }
+  if (manindry) {
+    nbN++;
+    notes += '<div class="pl-note pl-n">&#9888; Andro manindry : le ' + JMG[date.getDay()].fr.toLowerCase() + ' est un jour n&eacute;faste pour le vintana ' + n.jour + '.</div>';
+  }
+  if (res.v.nom === n.jour) {
+    notes += '<div class="pl-note pl-x">Jour de votre vintana natal : fady pour les actes sur le corps (Mandratra tonon\'andro).</div>';
+  }
+  var bc = nbN ? 'bn' : (nbF ? 'bf' : 'bx');
+  var bl = nbN ? 'D&Eacute;FAVORABLE' : (nbF ? 'FAVORABLE' : 'NEUTRE');
+  return '<div class="apanel anim">' +
+      '<div class="vhead" style="margin-bottom:6px"><div class="ptitle" style="margin:0">Lecture personnelle &middot; ' + esc(pf.nom) + '</div>' +
+      '<div class="badge ' + bc + '">' + bl + '</div></div>' +
+      rows + notes +
+    '</div>';
+}
+
 
 setToday();
+pfInit();
 
 </script>
 

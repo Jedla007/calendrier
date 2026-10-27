@@ -7,248 +7,357 @@
 
   <!-- iOS Safari PWA -->
   <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Alimanaka"/>
   <link rel="apple-touch-icon" href="icons/icon-180.png"/>
   <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png"/>
   <link rel="apple-touch-icon" sizes="144x144" href="icons/icon-144.png"/>
 
   <!-- Couleur thème navigateur -->
-  <meta name="theme-color" content="#c9933a"/>
-  <meta name="msapplication-TileColor" content="#0d0b07"/>
+  <meta name="msapplication-TileColor" content="#FFEFC2"/>
   <meta name="msapplication-TileImage" content="icons/icon-144.png"/>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#FFEFC2"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <title>Alimanaka — Vintana Malagasy</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
-:root{--bg:#0d0b07;--surface:#16120c;--surface2:#1e1810;--gold:#c9933a;--gold2:#e8b96a;--cream:#f0e8d5;--text:#ddd0b8;--muted:#7a6f5e;}
+/* Palette : un matin a Madagascar. Lagon, soleil, jacaranda, hibiscus, feuille, encre de nuit */
+:root{
+  --bg:#FFEFC2;--card:#FFFFFF;--card2:#FFF8E6;--line:#F0DFB4;
+  --ink:#1D2B53;--ink2:#4C5677;
+  --lagoon:#0E7F81;--lagoon-d:#0A6264;--lagoon-t:#DCEFEC;
+  --sun:#F5B31B;--sun-t:#FFF1CC;
+  --jaca:#6B4FBF;--jaca-t:#EEE8FB;
+  --hibi:#CF3A50;--hibi-d:#A82A3E;--hibi-t:#FBE4E7;
+  --leaf:#22844C;--leaf-d:#196A3C;--leaf-t:#DFF1E6;
+  --lime:#86B23A;--blue:#3A78D4;--blue-t:#E3EDFB;--orange:#E07A2C;
+  --display:'Young Serif',Georgia,serif;--sans:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
+  /* Drapeau malgache : blanc au mat, rouge en haut, vert en bas */
+  --drapeau:linear-gradient(90deg,#FFFFFF 0 33.33%,transparent 33.33%),linear-gradient(180deg,#FC3D32 0 50%,#007E3A 50% 100%);
+}
+/* Themes de fond choisis par l'utilisateur (soleil par defaut) */
+:root[data-theme=corail]{--bg:#FFE1D6;--card2:#FFF4EF;--line:#F3CFC2;}
+:root[data-theme=ciel]{--bg:#DCEBFF;--card2:#F2F7FF;--line:#C9DBF3;}
+:root[data-theme=lilas]{--bg:#ECE3FF;--card2:#F7F3FF;--line:#DCD0F5;}
+.th-wrap{position:relative;align-self:center;}
+.theme-btn{display:block;width:44px;height:44px;border-radius:50%;border:2px solid rgba(29,43,83,.25);cursor:pointer;}
+.th-cur{border:3px solid var(--ink);box-shadow:inset 0 0 0 3px #fff;}
+.th-menu{position:absolute;top:calc(100% + 8px);left:-6px;z-index:25;display:flex;flex-direction:column;gap:8px;padding:6px;background:var(--card);border:1px solid var(--line);border-radius:999px;box-shadow:0 8px 24px rgba(29,43,83,.18);}
+.th-menu[hidden],.th-menu .theme-btn[hidden]{display:none;}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'Cormorant Garamond',serif;min-height:100vh;}
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 20% 20%,rgba(201,147,58,.04),transparent 60%),radial-gradient(ellipse 60% 40% at 80% 80%,rgba(201,147,58,.03),transparent 60%);pointer-events:none;z-index:0;}
-.app{max-width:1100px;margin:0 auto;padding:0 32px 80px;position:relative;z-index:1;}
-header{text-align:center;padding:60px 0 40px;border-bottom:1px solid rgba(201,147,58,.15);margin-bottom:48px;position:relative;}
-header::after{content:'⋆ ✦ ⋆';display:block;position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);background:var(--bg);padding:0 16px;color:var(--gold);font-size:12px;letter-spacing:8px;}
-.logo-line{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:6px;text-transform:uppercase;color:var(--gold);margin-bottom:12px;opacity:.8;}
-h1{font-size:clamp(42px,6vw,72px);font-weight:300;color:var(--cream);letter-spacing:4px;line-height:1;margin-bottom:8px;}
-h1 span{color:var(--gold2);font-style:italic;}
-.subtitle{font-size:15px;color:var(--muted);letter-spacing:2px;font-style:italic;}
-.layout{display:grid;grid-template-columns:310px 1fr;gap:26px;align-items:start;}
-.left-panel{display:flex;flex-direction:column;gap:18px;}
-.panel{background:var(--surface);border:1px solid rgba(201,147,58,.12);border-radius:4px;padding:22px;position:relative;overflow:hidden;}
-.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.4;}
-.ptitle{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:14px;opacity:.7;}
-input[type=date]{width:100%;background:var(--surface2);border:1px solid rgba(201,147,58,.2);color:var(--cream);padding:11px 13px;font-family:'Space Mono',monospace;font-size:13px;border-radius:4px;outline:none;margin-bottom:9px;}
-input[type=date]:focus{border-color:var(--gold);}
-input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.6) sepia(1) hue-rotate(10deg);cursor:pointer;}
-.btn-s{width:100%;padding:10px;background:transparent;border:1px solid rgba(201,147,58,.3);color:var(--gold);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;border-radius:4px;cursor:pointer;margin-bottom:7px;}
-.btn-s:hover{background:rgba(201,147,58,.08);}
-.btn-p{width:100%;padding:13px;background:linear-gradient(135deg,var(--gold),#a06820);border:none;color:#0d0b07;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:3px;font-weight:700;border-radius:4px;cursor:pointer;transition:all .2s;}
-.btn-p:hover{background:linear-gradient(135deg,var(--gold2),var(--gold));transform:translateY(-1px);box-shadow:0 4px 20px rgba(201,147,58,.3);}
-.moon-box{text-align:center;padding:4px 0;}
-.moon-icon{font-size:38px;line-height:1;margin-bottom:5px;}
-.moon-name{font-size:13px;color:var(--gold2);font-style:italic;margin-bottom:3px;}
-.moon-age{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);}
-.jour-box{text-align:center;padding:4px 0;}
-.jour-fr{font-size:22px;color:var(--cream);font-weight:300;letter-spacing:2px;margin-bottom:3px;}
-.jour-mg{font-family:'Space Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:3px;}
-.jour-nat{margin-top:7px;display:inline-block;padding:3px 12px;border-radius:20px;font-size:11px;font-style:italic;}
-.volana-box{text-align:center;padding:4px 0;}
-.volana-n{font-size:22px;color:var(--cream);letter-spacing:3px;margin-bottom:4px;}
-.volana-s{font-size:12px;color:var(--muted);font-style:italic;}
-.volana-t{font-size:10px;color:var(--gold);margin-top:5px;font-family:'Space Mono',monospace;letter-spacing:2px;}
-.prog-bg{height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-top:10px;}
-.prog-fill{height:3px;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:2px;}
-.prog-lbl{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px;letter-spacing:1px;}
-/* RIGHT */
-.right-panel{display:flex;flex-direction:column;gap:16px;}
-.vcard{background:var(--surface);border:1px solid rgba(201,147,58,.2);border-radius:4px;padding:30px;position:relative;overflow:hidden;}
-.vcard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--gold),var(--gold2),var(--gold),transparent);}
-.vcard.faste{border-color:rgba(74,124,78,.45);}
-.vcard.faste::before{background:linear-gradient(90deg,transparent,#4a7c4e,#6aad6e,#4a7c4e,transparent);}
-.vcard.nefaste{border-color:rgba(139,58,58,.45);}
-.vcard.nefaste::before{background:linear-gradient(90deg,transparent,#8b3a3a,#c06060,#8b3a3a,transparent);}
-.vhead{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;}
-.vmeta{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;line-height:1.6;}
-.badge{padding:4px 13px;border-radius:20px;font-size:10px;font-family:'Space Mono',monospace;letter-spacing:2px;}
-.bf{background:rgba(15,34,16,.8);color:#6aad6e;border:1px solid rgba(74,124,78,.4);}
-.bn{background:rgba(30,8,8,.8);color:#c06060;border:1px solid rgba(139,58,58,.4);}
-.bx{background:rgba(10,16,24,.8);color:#7a9ab5;border:1px solid rgba(90,107,124,.4);}
-.vname{font-size:clamp(42px,5.2vw,70px);font-weight:300;color:var(--cream);letter-spacing:3px;line-height:1;margin-bottom:4px;}
-.vsign{font-size:14px;color:var(--gold2);font-style:italic;letter-spacing:2px;margin-bottom:16px;}
-/* Dots du jour */
-.dots-row{display:flex;align-items:center;gap:7px;margin-bottom:16px;}
-.dot{width:11px;height:11px;border-radius:50%;}
-.dot-on{background:var(--gold);}
-.dot-off{background:transparent;border:1.5px solid rgba(201,147,58,.3);}
-.dot-lbl{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-left:2px;}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;}
-.chip{padding:4px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(201,147,58,.1);border-radius:20px;font-size:13px;color:var(--text);}
-.vdesc{font-size:15px;line-height:1.8;color:var(--text);border-left:2px solid rgba(201,147,58,.3);padding-left:15px;font-style:italic;}
-/* Acts */
-.apanel{background:var(--surface);border:1px solid rgba(201,147,58,.1);border-radius:4px;padding:20px;}
-.agrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px;}
-.act{display:flex;align-items:center;gap:8px;padding:8px 11px;border-radius:4px;font-size:13px;}
-.aok{background:rgba(74,124,78,.08);border:1px solid rgba(74,124,78,.22);color:#8ac88e;}
-.ank{background:rgba(139,58,58,.08);border:1px solid rgba(139,58,58,.22);color:#c08080;}
-/* Cal */
-.cpanel{background:var(--surface);border:1px solid rgba(201,147,58,.1);border-radius:4px;padding:20px;}
-.cgrid{display:flex;flex-direction:column;gap:3px;margin-top:10px;}
-.crow{display:flex;gap:3px;}
-.cv{flex:1;padding:5px 3px;border-radius:3px;font-size:9px;text-align:center;border:1px solid rgba(201,147,58,.07);color:rgba(200,185,160,.5);cursor:default;}
-.cv.active{background:rgba(201,147,58,.18);border-color:rgba(201,147,58,.6);color:var(--gold2);font-weight:700;}
-.cv.cf{background:rgba(74,124,78,.06);}
-.cv.cn{background:rgba(139,58,58,.06);}
-.cv.cx{background:rgba(20,20,35,.4);}
-/* Placeholder */
-.ph{text-align:center;padding:80px 40px;color:var(--muted);}
-.ph-icon{font-size:56px;margin-bottom:16px;opacity:.2;}
-.ph-txt{font-size:20px;font-style:italic;color:var(--text);opacity:.28;letter-spacing:2px;margin-bottom:6px;}
-.ph-sub{font-size:13px;opacity:.4;}
-footer{text-align:center;padding:40px 0 0;border-top:1px solid rgba(201,147,58,.08);margin-top:60px;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:3px;}
-@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.anim{animation:fi .35s ease;}
-@media(max-width:800px){.layout{grid-template-columns:1fr;}.agrid{grid-template-columns:1fr;}}
-.nlvl-btn{flex:1;padding:9px 6px;background:transparent;border:1px solid rgba(201,147,58,.2);color:var(--muted);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;border-radius:4px;cursor:pointer;transition:all .2s;}
-.nlvl-btn:hover{border-color:rgba(201,147,58,.5);color:var(--gold);}
-.active-niv{background:rgba(201,147,58,.12)!important;border-color:var(--gold)!important;color:var(--gold2)!important;}
-.nani-outer{background:var(--surface);border:2px solid rgba(201,147,58,.3);border-radius:4px;padding:20px;display:flex;flex-direction:column;gap:14px;}
-.nani-box{background:var(--surface2);border:1px solid rgba(201,147,58,.15);border-radius:4px;padding:16px;}
-.nani-sub-title{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:10px;opacity:.8;}
-.nani-content{font-size:14px;line-height:1.8;color:var(--text);}
-/* Vue calendrier */
-.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
-.cal-title{text-align:center;font-size:26px;color:var(--cream);font-weight:300;letter-spacing:2px;}
-.cal-sel{position:relative;display:inline-block;padding:0 4px;border-radius:4px;border-bottom:1px dotted rgba(201,147,58,.5);cursor:pointer;}
-.cal-sel:hover{color:var(--gold2);background:rgba(201,147,58,.06);}
+html{-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;}
+button,select,input,.cal-row,.hr-row.mj{touch-action:manipulation;}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;min-height:100vh;}
+button,select,input{font-family:inherit;}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px;}
+/* iPhone : la bande passe sous l'encoche sans cacher le contenu (marges de securite) */
+.drapeau{height:12px;box-sizing:content-box;border-top:env(safe-area-inset-top) solid var(--bg);background:var(--drapeau);background-origin:content-box;background-clip:content-box;}
+.app{max-width:1180px;margin:0 auto;padding:0 max(24px,env(safe-area-inset-right)) 48px max(24px,env(safe-area-inset-left));}
+header.top{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 14px;padding:26px 0 22px;}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,5vw,48px);line-height:1;color:var(--ink);}
+.subtitle{color:var(--ink2);font-size:15px;}
+
+/* Mise en page : reglages a gauche, vue a droite ; sur telephone, onglets en bas */
+.layout{display:grid;grid-template-columns:320px minmax(0,1fr);grid-template-areas:"ctrl tabs" "ctrl main" "extra main";grid-template-rows:auto auto 1fr;gap:18px 28px;align-items:start;}
+.ctrl{grid-area:ctrl;}.tabs{grid-area:tabs;}.right-panel{grid-area:main;}.extra{grid-area:extra;}
+.ctrl,.extra,.right-panel{display:flex;flex-direction:column;gap:16px;min-width:0;}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px 18px 20px;}
+.ptitle{display:block;font-weight:700;font-size:15px;color:var(--ink);margin-bottom:10px;}
+.pf-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.pf-head .ptitle{margin:0;}
+.lnk{background:none;border:0;color:var(--lagoon);font-weight:700;font-size:15px;cursor:pointer;min-height:44px;padding:0 4px;}
+.lnk:hover{color:var(--lagoon-d);text-decoration:underline;}
+.field-lbl{margin-top:16px;}
+
+/* Onglets */
+.tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px;}
+.tab{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 10px;border:0;background:transparent;border-radius:999px;font-weight:600;font-size:15px;color:var(--ink2);cursor:pointer;transition:background .2s,color .2s;}
+.tab svg{width:20px;height:20px;flex:none;}
+.tab:hover{color:var(--ink);background:var(--card2);}
+.tab.on{background:var(--ink);color:#fff;}
+.tab.on svg{color:var(--sun);}
+
+/* Champs et boutons */
+input[type=date],input[type=text],.pf-sel{display:block;width:100%;min-height:46px;background:var(--card2);border:1.5px solid var(--line);color:var(--ink);padding:9px 12px;font-size:16px;font-weight:500;border-radius:12px;outline:none;margin-bottom:10px;}
+input[type=date]:focus,input[type=text]:focus,.pf-sel:focus{border-color:var(--lagoon);box-shadow:0 0 0 3px var(--lagoon-t);}
+input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;}
+/* Safari iOS : sans cela, le champ date ignore largeur, arrondi et alignement */
+input[type=date]{-webkit-appearance:none;appearance:none;min-width:0;line-height:1.5;}
+input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.5em;}
+.pf-sel{-webkit-appearance:none;appearance:none;padding-right:36px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%231D2B53' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;}
+.date-row{display:flex;gap:8px;}
+.date-row input{flex:1;min-width:0;margin:0;}
+.btn-s{display:block;width:100%;min-height:44px;padding:10px 16px;background:var(--lagoon-t);border:0;color:var(--lagoon-d);font-weight:700;font-size:15px;border-radius:12px;cursor:pointer;transition:background .2s;}
+.btn-s:hover{background:#C9E6E2;}
+.date-row .btn-s{width:auto;flex:none;}
+.btn-p{display:block;width:100%;min-height:48px;padding:12px 16px;background:var(--lagoon);border:0;color:#fff;font-weight:700;font-size:16px;border-radius:12px;cursor:pointer;transition:background .2s;}
+.btn-p:hover{background:var(--lagoon-d);}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.nlvl-btn{min-height:44px;padding:8px 10px;background:var(--card2);border:1.5px solid var(--line);color:var(--ink2);font-weight:700;font-size:15px;border-radius:12px;cursor:pointer;transition:border-color .2s,color .2s;}
+.nlvl-btn:hover{border-color:var(--lagoon);color:var(--ink);}
+.active-niv{background:var(--ink)!important;border-color:var(--ink)!important;color:#fff!important;}
+#niv-desc{margin-top:10px;padding:10px 12px;background:var(--card2);border-radius:12px;font-size:14px;line-height:1.55;color:var(--ink2);}
+.niv-tag{display:block;font-weight:700;color:var(--ink);}
+
+/* Profil */
+.pf-info{font-size:14px;line-height:1.6;color:var(--ink2);}
+.pf-info b{color:var(--ink);font-weight:600;}
+.pf-modal{position:fixed;inset:0;background:rgba(29,43,83,.55);display:flex;align-items:center;justify-content:center;z-index:30;padding:16px;}
+.pf-box{width:100%;max-width:400px;}
+.pf-lbl{font-size:14px;font-weight:700;color:var(--ink2);margin-bottom:6px;}
+.pf-err{color:var(--hibi-d);font-size:14px;min-height:20px;margin-bottom:6px;}
+.pf-box .btn-s{margin-top:8px;}
+
+/* Fiche du jour : l'element fort de la page */
+.vcard{position:relative;background:var(--lagoon-t);border-radius:28px;padding:34px 28px 28px;overflow:hidden;}
+.vcard::before{content:'';position:absolute;top:0;left:0;right:0;height:10px;background:var(--drapeau);}
+.vcard.faste{background:var(--leaf-t);}
+.vcard.nefaste{background:var(--hibi-t);}
+.vhead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px;}
+.vmeta{font-size:15px;color:var(--ink2);line-height:1.5;}
+.badge{display:inline-block;padding:5px 14px;border-radius:999px;font-weight:700;font-size:14px;white-space:nowrap;}
+.bf{background:var(--leaf);color:#fff;}
+.bn{background:var(--hibi);color:#fff;}
+.bx{background:var(--blue);color:#fff;}
+.vname{font-family:var(--display);font-weight:400;font-size:clamp(46px,8vw,84px);line-height:1.02;color:var(--ink);margin:2px 0 6px;overflow-wrap:anywhere;}
+.vsign{font-family:var(--display);font-size:clamp(20px,3.4vw,35px);line-height:1.15;color:var(--ink2);margin-bottom:16px;}
+.vjn{font-family:var(--sans);font-size:17px;font-weight:600;color:var(--lagoon-d);white-space:nowrap;}
+.dot{width:12px;height:12px;border-radius:50%;flex:none;}
+.vdesc{font-size:17px;line-height:1.65;color:var(--ink);max-width:62ch;}
+.vperso{margin-top:20px;background:rgba(255,255,255,.72);border-radius:18px;padding:14px 16px;}
+.vperso .pl-row{border-bottom-color:rgba(29,43,83,.1);}
+.vperso .pl-note{background:rgba(255,255,255,.8);}
+.vperso .pl-note.pl-f{background:var(--leaf-t);}.vperso .pl-note.pl-n{background:var(--hibi-t);}.vperso .pl-note.pl-x{background:var(--blue-t);}
+
+/* Panneaux de la vue */
+.apanel,.cpanel,.nani-outer{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;}
+.nani-outer{display:flex;flex-direction:column;gap:12px;}
+.agrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;}
+.act{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:12px;font-size:15px;line-height:1.45;}
+.act span{font-weight:700;flex:none;}
+.aok{background:var(--leaf-t);color:var(--leaf-d);}
+.ank{background:var(--hibi-t);color:var(--hibi-d);}
+.nani-box{background:var(--card2);border-radius:16px;padding:16px;}
+.nani-sub-title{font-weight:700;font-size:15px;color:var(--lagoon-d);margin-bottom:8px;}
+.nani-content{font-size:16px;line-height:1.7;}
+
+/* Lune, jour, mois (colonne de gauche) */
+.moon-box,.jour-box,.volana-box{text-align:center;padding:2px 0;}
+.moon-icon{display:flex;justify-content:center;margin-bottom:6px;}
+.moon-icon .cal-moon{width:56px;height:56px;}
+.moon-name{font-family:var(--display);font-size:21px;color:var(--ink);margin-bottom:2px;}
+.moon-age{font-size:14px;color:var(--ink2);}
+.jour-fr{font-family:var(--display);font-size:26px;color:var(--ink);margin-bottom:2px;}
+.jour-mg{font-size:15px;font-weight:700;color:var(--lagoon-d);}
+.jour-nat{margin-top:8px;display:inline-block;padding:4px 14px;border-radius:999px;font-size:14px;font-weight:600;}
+.volana-n{font-family:var(--display);font-size:26px;color:var(--ink);margin-bottom:2px;}
+.volana-s{font-size:15px;color:var(--ink2);}
+.volana-t{font-size:14px;font-weight:700;color:var(--jaca);margin-top:4px;}
+.prog-bg{height:8px;background:var(--card2);border-radius:99px;overflow:hidden;margin-top:12px;}
+.prog-fill{height:8px;background:var(--sun);border-radius:99px;}
+.prog-lbl{font-size:14px;color:var(--ink2);margin-top:6px;text-align:center;}
+.mn-d{fill:#2C3A68;stroke:var(--ink);stroke-width:1;}
+.mn-l{fill:#FFD15C;}
+
+/* Accueil vide */
+.ph{text-align:center;padding:64px 24px;color:var(--ink2);}
+.ph-txt{font-family:var(--display);font-size:24px;color:var(--ink);margin-bottom:6px;}
+
+/* Calendrier */
+.cal-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;}
+.cal-title{text-align:center;font-family:var(--display);font-size:30px;line-height:1.1;color:var(--ink);}
+.cal-title .vmeta{font-family:var(--sans);font-size:14px;margin-top:4px;}
+.cal-sel{position:relative;display:inline-block;padding:0 4px;border-radius:8px;border-bottom:2px dotted var(--lagoon);cursor:pointer;}
+.cal-sel:hover{background:var(--lagoon-t);}
 .cal-sel select{position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px;}
-.cal-sel option{background:#1e1810;color:#f0e8d5;}
+.cal-nav{flex:none;width:46px;height:46px;border-radius:50%;background:var(--card2);border:1.5px solid var(--line);color:var(--ink);font-size:26px;line-height:1;cursor:pointer;transition:background .2s;}
+.cal-nav:hover{background:var(--lagoon-t);border-color:var(--lagoon);}
+.cal-sep{font-weight:700;font-size:15px;color:var(--lagoon-d);padding:18px 8px 8px;border-bottom:2px solid var(--line);margin-bottom:4px;}
+.cal-row{display:grid;grid-template-columns:30px 38px 74px minmax(20px,1fr) 128px 14px 30px;gap:10px;align-items:center;padding:9px 8px;border-radius:12px;cursor:pointer;font-size:16px;transition:background .15s;}
+.cal-row:hover{background:var(--card2);}
+.cal-row.we{background:var(--jaca-t);}
+.cal-row.we .cal-jfr,.cal-row.we .cal-jmg{color:var(--jaca);}
+.cal-row.active{background:var(--sun-t);box-shadow:inset 0 0 0 2px var(--sun);}
+.cal-num{font-weight:700;font-size:16px;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums;}
+.cal-jfr{font-size:13px;font-weight:700;color:var(--ink2);}
+.cal-jmg{color:var(--ink2);font-size:15px;}
 .cal-mid{display:flex;justify-content:center;align-items:center;gap:4px;}
 .cal-moon{display:block;flex:none;}
-.cal-h{width:5ch;font-family:'Space Mono',monospace;font-size:10px;color:var(--gold2);white-space:nowrap;}
-.cal-nav{background:transparent;border:1px solid rgba(201,147,58,.3);color:var(--gold);width:38px;height:38px;border-radius:4px;font-size:22px;line-height:1;cursor:pointer;}
-.cal-nav:hover{background:rgba(201,147,58,.08);}
-.cal-sep{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);padding:14px 8px 6px;border-bottom:1px solid rgba(201,147,58,.25);}
-.cal-row{display:grid;grid-template-columns:30px 38px 70px minmax(20px,1fr) 118px 10px 34px;gap:10px;align-items:center;padding:7px 8px;border-bottom:1px solid rgba(201,147,58,.06);cursor:pointer;font-size:15px;}
-.cal-row.we{background:rgba(120,100,180,.14);}
-.cal-row.we .cal-jfr,.cal-row.we .cal-jmg{color:#b3a8cc;}
-.cal-row:hover{background:rgba(201,147,58,.06);}
-.cal-row.active{background:rgba(201,147,58,.16);}
-.cal-num{font-family:'Space Mono',monospace;font-size:13px;color:var(--cream);text-align:right;}
-.cal-jfr{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;}
-.cal-jmg{color:var(--muted);font-style:italic;}
-.cal-v{color:var(--cream);text-align:left;white-space:nowrap;}
-.cal-v span{font-family:'Space Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:1px;margin-right:6px;}
-.cal-row .dot{width:9px;height:9px;}
-.cal-nani{font-family:'Space Mono',monospace;font-size:11px;color:var(--gold2);text-align:right;}
-.dot-f{background:#6aad6e;}.dot-n{background:#c06060;}.dot-x{background:#7a9ab5;}
-.cal-legend{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-top:14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;}
-.cal-legend .dot{width:9px;height:9px;display:inline-block;vertical-align:middle;margin-right:6px;}
-@media(max-width:480px){.cpanel{padding:20px 12px;}.cal-row{grid-template-columns:16px 22px minmax(20px,1fr) 116px 9px 14px;gap:6px;padding:7px 4px;}.cal-jmg{display:none;}}
-/* Profils */
-input[type=text]{width:100%;background:var(--surface2);border:1px solid rgba(201,147,58,.2);color:var(--cream);padding:11px 13px;font-family:'Space Mono',monospace;font-size:13px;border-radius:4px;outline:none;margin-bottom:9px;}
-input[type=text]:focus{border-color:var(--gold);}
-.pf-sel{width:100%;background:var(--surface2);border:1px solid rgba(201,147,58,.2);color:var(--cream);padding:10px 12px;font-family:'Space Mono',monospace;font-size:12px;border-radius:4px;outline:none;margin-bottom:9px;}
-.pf-info{font-size:13px;line-height:1.6;color:var(--muted);margin-bottom:10px;}
-.pf-info b{color:var(--gold2);font-weight:400;}
-.pf-modal{position:fixed;inset:0;background:rgba(5,4,2,.85);display:flex;align-items:center;justify-content:center;z-index:10;padding:16px;}
-.pf-box{width:100%;max-width:380px;}
-.pf-lbl{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
-.pf-err{color:#c06060;font-size:13px;min-height:18px;margin-bottom:6px;}
-.pl-row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid rgba(201,147,58,.08);font-size:14px;}
-.pl-k{color:var(--muted);}
-.pl-f{color:#8ac88e;}.pl-n{color:#c08080;}.pl-x{color:#7a9ab5;}
-.pl-note{margin-top:10px;font-size:14px;line-height:1.7;}
+.cal-h{width:5ch;font-size:12px;font-weight:600;color:var(--ink2);white-space:nowrap;font-variant-numeric:tabular-nums;}
+.cal-v{color:var(--ink);text-align:left;white-space:nowrap;font-weight:600;}
+.cal-v span{font-size:13px;font-weight:700;color:var(--lagoon-d);margin-right:6px;}
+.cal-nani{font-size:13px;font-weight:600;color:var(--ink2);text-align:right;font-variant-numeric:tabular-nums;}
+.cal-row .dot{width:11px;height:11px;}
+.dot-f{background:var(--leaf);}.dot-n{background:var(--hibi);}.dot-x{background:var(--blue);}
+.dot-p0{background:var(--leaf);}.dot-p1{background:var(--lime);}.dot-p2{background:var(--blue);}.dot-p3{background:var(--orange);}.dot-p4{background:var(--hibi);}
+.cal-row .dot.pdbl,.cal-legend .dot.pdbl{width:15px;height:15px;border:3.5px solid;}
+.ring-p0{border-color:var(--leaf)!important;}.ring-p1{border-color:var(--lime)!important;}.ring-p2{border-color:var(--blue)!important;}.ring-p4{border-color:var(--hibi)!important;}
+.cal-legend .ring-x{border-color:var(--ink2)!important;background:transparent;}.cal-legend .dot-c{border:none;}
+.cal-legend{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:center;margin-top:16px;font-size:14px;color:var(--ink2);}
+.cal-legend .dot{width:11px;height:11px;display:inline-block;vertical-align:middle;margin-right:6px;}
+
+/* Lecture personnelle, horloge, heures */
+.pl-row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:15px;}
+.pl-row:last-child{border-bottom:0;}
+.pl-k{color:var(--ink2);}
+.pl-f{color:var(--leaf-d);font-weight:600;}.pl-n{color:var(--hibi-d);font-weight:600;}.pl-x{color:var(--blue);font-weight:600;}
+.pl-note{margin-top:10px;font-size:15px;line-height:1.6;padding:10px 12px;border-radius:12px;background:var(--card2);}
+.pl-note.pl-f{background:var(--leaf-t);}.pl-note.pl-n{background:var(--hibi-t);}.pl-note.pl-x{background:var(--blue-t);}
+.pl-note.pl-k{background:none;padding:0;font-weight:400;}
+.hz-t{font-family:var(--display);font-size:44px;line-height:1;color:var(--ink);text-align:center;margin:2px 0 10px;font-variant-numeric:tabular-nums;}
+.hr-row{display:grid;grid-template-columns:56px 1fr 1fr 80px;gap:8px;align-items:center;padding:9px 8px;border-radius:10px;font-size:15px;}
+.hr-row.nuit{background:#EEF0F8;}
+.hr-row.active{background:var(--sun-t);box-shadow:inset 0 0 0 2px var(--sun);}
+.hr-row.mj{grid-template-columns:84px 1fr 36px 1.4fr;cursor:pointer;border-bottom:1px solid var(--line);border-radius:0;transition:background .15s;}
+.hr-row.mj:hover{background:var(--card2);}
+.hr-h{font-size:14px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;}
+
 /* Fady & rites */
-.ft-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px;}
-.ft-bar .nlvl-btn{flex:none;padding:7px 14px;}
-.ft-bar .pf-sel{width:auto;flex:1;min-width:150px;margin:0;}
-.ft-sec{margin-top:18px;}
-.ft-t{font-size:17px;color:var(--cream);margin:10px 0 6px;}
-.ft-h{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin:12px 0 6px;}
-.ft-p{font-size:14px;line-height:1.7;margin-bottom:6px;}
-.ft-li,.ft-li2{display:flex;gap:8px;font-size:14px;line-height:1.7;margin-bottom:3px;}
-.ft-li2{padding-left:20px;}
-.ft-li>span,.ft-li2>span{color:var(--gold);flex:none;min-width:12px;}
+.ft-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;}
+.ft-bar .nlvl-btn{flex:none;padding:8px 18px;}
+.ft-bar .pf-sel{width:auto;flex:1;min-width:160px;margin:0;}
+.ft-sec{margin-top:20px;}
+.ft-t{font-family:var(--display);font-size:20px;color:var(--ink);margin:12px 0 6px;}
+.ft-h{font-weight:700;font-size:16px;color:var(--lagoon-d);margin:14px 0 6px;}
+.ft-p{font-size:16px;line-height:1.7;margin-bottom:8px;max-width:68ch;}
+.ft-li,.ft-li2{display:flex;gap:10px;font-size:16px;line-height:1.65;margin-bottom:4px;max-width:68ch;}
+.ft-li2{padding-left:22px;}
+.ft-li>span,.ft-li2>span{color:var(--lagoon);flex:none;min-width:12px;font-weight:700;}
 .ft-li>div,.ft-li2>div{flex:1;min-width:0;}
-.ft-box{background:var(--surface2);border:1px solid rgba(201,147,58,.15);border-radius:4px;padding:12px 14px;margin:8px 0;font-size:14px;line-height:1.7;}
-/* Heures */
-.hz-t{font-family:'Space Mono',monospace;font-size:26px;color:var(--cream);text-align:center;margin-bottom:6px;}
-.hr-row{display:grid;grid-template-columns:52px 1fr 1fr 74px;gap:8px;align-items:center;padding:6px 6px;border-bottom:1px solid rgba(201,147,58,.06);font-size:14px;}
-.hr-row.nuit{background:rgba(90,107,124,.08);}
-.hr-row.active{background:rgba(201,147,58,.16);}
-.hr-row.mj{grid-template-columns:74px 1fr 34px 1.4fr;cursor:pointer;}
-.hr-row.mj:hover{background:rgba(201,147,58,.06);}
-.hr-h{font-family:'Space Mono',monospace;font-size:11px;color:var(--gold2);}
-@media(max-width:480px){.hr-row{grid-template-columns:44px 1fr 1fr 60px;gap:5px;font-size:13px;}.hr-row.mj{grid-template-columns:64px 1fr 28px;}.hr-row.mj .pl-k{grid-column:1/-1;font-size:12px;}}
-::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:rgba(201,147,58,.3);border-radius:3px;}
+.ft-box{background:var(--card2);border-radius:14px;padding:12px 14px;margin:8px 0;font-size:16px;line-height:1.65;}
+
+footer{text-align:center;padding:36px 0 0;color:var(--ink2);font-size:14px;}
+footer .proverbe{font-family:var(--display);font-size:17px;color:var(--ink);margin-bottom:4px;}
+
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.anim{animation:fi .3s ease-out;}
+
+@media(max-width:899px){
+  .app{padding:0 max(16px,env(safe-area-inset-right)) calc(104px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));}
+  header.top{padding:18px 0 14px;}
+  .pf-info{display:none;}
+  .layout{grid-template-columns:minmax(0,1fr);grid-template-areas:"ctrl" "main" "extra";grid-template-rows:none;gap:16px;}
+  .tabs{position:fixed;left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));bottom:calc(8px + env(safe-area-inset-bottom));z-index:20;border-radius:22px;padding:6px;box-shadow:0 10px 30px rgba(29,43,83,.22);}
+  .tab{flex-direction:column;gap:2px;min-height:56px;padding:4px 2px;border-radius:16px;font-size:12px;line-height:1.15;text-align:center;}
+  .agrid{grid-template-columns:1fr;}
+  .vcard{padding:30px 20px 22px;border-radius:24px;}
+  .apanel,.cpanel,.nani-outer{padding:18px 14px;}
+}
+@media(max-width:480px){
+  .cal-row{grid-template-columns:18px 26px minmax(20px,1fr) 118px 15px 18px;gap:6px;padding:9px 4px;font-size:15px;}
+  .cal-jmg{display:none;}
+  .vperso{padding:12px 14px;}
+  .vperso .pl-row{flex-direction:column;gap:2px;}
+  .cal-title{font-size:24px;}
+  .hr-row{grid-template-columns:48px 1fr 1fr 64px;gap:5px;font-size:14px;}
+  .hr-row.mj{grid-template-columns:72px 1fr 30px;}
+  .hr-row.mj .pl-k{grid-column:1/-1;font-size:13px;}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
 </style>
+<script>
+try { var thSauve = localStorage.getItem('alimanaka_theme'); if (thSauve) document.documentElement.setAttribute('data-theme', thSauve); } catch (e) {}
+</script>
 </head>
 <body>
+<div class="drapeau" aria-hidden="true"></div>
 <div class="app">
-<header>
-  <div class="logo-line">✦ Fanandroana Malagasy ✦</div>
-  <h1>Ali<span>manaka</span></h1>
-  <p class="subtitle">Vintana — L'art du destin malgache · Méthode Isa Lava</p>
+<header class="top">
+  <div class="th-wrap">
+    <button class="theme-btn th-cur" id="thBtn" onclick="thMenu()" aria-label="Couleur du fond" aria-haspopup="true" aria-expanded="false" title="Couleur du fond"></button>
+    <div class="th-menu" id="thMenu" hidden>
+      <button class="theme-btn" id="thSoleil" style="background:#FFEFC2" onclick="setTheme('soleil')" aria-label="Jaune soleil" title="Jaune soleil"></button>
+      <button class="theme-btn" id="thCorail" style="background:#FFE1D6" onclick="setTheme('corail')" aria-label="Corail" title="Corail"></button>
+      <button class="theme-btn" id="thCiel" style="background:#DCEBFF" onclick="setTheme('ciel')" aria-label="Bleu ciel" title="Bleu ciel"></button>
+      <button class="theme-btn" id="thLilas" style="background:#ECE3FF" onclick="setTheme('lilas')" aria-label="Lilas jacaranda" title="Lilas jacaranda"></button>
+    </div>
+  </div>
+  <h1>Alimanaka</h1>
+  <p class="subtitle">Calendrier des vintana malgaches, m&eacute;thode Isa Lava</p>
 </header>
 <div class="layout">
-  <div class="left-panel">
-    <div class="panel">
-      <div class="ptitle">Profil</div>
+  <aside class="ctrl">
+    <section class="panel">
+      <div class="pf-head">
+        <label class="ptitle" for="pfSel">Profil</label>
+        <button class="lnk" onclick="pfOpen()">+ Nouveau profil</button>
+      </div>
       <select class="pf-sel" id="pfSel" onchange="pfLoad(parseInt(this.value,10))"></select>
       <div class="pf-info" id="pfInfo"></div>
-      <button class="btn-s" style="margin:0" onclick="pfOpen()">+ Nouveau profil</button>
-    </div>
-    <div class="panel">
-      <div class="ptitle">Choisir une date</div>
-      <input type="date" id="dp" min="1600-01-16" max="2050-12-14"/>
-      <button class="btn-s" onclick="setToday()">Aujourd'hui</button>
-      <button class="btn-p" onclick="calculate()">✦ Calculer le Vintana</button>
-      <button class="btn-s" style="margin:7px 0 0" onclick="showCalendar()">&#128197; Vue calendrier</button>
-      <button class="btn-s" style="margin:7px 0 0" onclick="meilleursJours()">&#10022; Meilleurs jours (30 j)</button>
-      <button class="btn-s" style="margin:7px 0 0" onclick="showFadyRites()">&#9775; Fady &amp; rites</button>
-      <div style="margin-top:14px">
-        <div class="ptitle" style="margin-bottom:8px">Niveau du Calendrier</div>
-        <div style="display:flex;gap:8px">
-          <button class="nlvl-btn" id="btnNiv1" onclick="setNiveau(1)">Niveau 1</button>
-          <button class="nlvl-btn active-niv" id="btnNiv2" onclick="setNiveau(2)">Niveau 2</button>
-        </div>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="nlvl-btn" id="btnNiv3" onclick="setNiveau(3)">Niveau 3</button>
-          <button class="nlvl-btn" id="btnNiv4" onclick="setNiveau(4)">Niveau 4</button>
-        </div>
-        <div id="niv-desc" style="margin-top:10px;padding:10px 12px;background:rgba(201,147,58,.06);border:1px solid rgba(201,147,58,.15);border-radius:4px;font-size:12px;line-height:1.6;color:var(--muted)">
-          <span style="color:var(--gold2);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px">NIVEAU 2</span><br>
-          Le premier jour du mois commence toujours le jour de la nouvelle lune.
-        </div>
+      <label class="ptitle field-lbl" for="dp">Date</label>
+      <div class="date-row">
+        <input type="date" id="dp" min="1600-01-16" max="2050-12-14" onchange="if(this.value)refreshVue(true)"/>
+        <button class="btn-s" onclick="setToday();refreshVue(true)">Aujourd'hui</button>
       </div>
+    </section>
+  </aside>
+
+  <nav class="tabs" aria-label="Vues">
+    <button class="tab" id="tabJour" onclick="calculate()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      Jour
+    </button>
+    <button class="tab" id="tabCal" onclick="showCalendar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Calendrier
+    </button>
+    <button class="tab" id="tabBest" onclick="meilleursJours()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5-4.8-4.6 6.6-.9z"/></svg>
+      Meilleurs jours
+    </button>
+    <button class="tab" id="tabFady" onclick="showFadyRites()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10Z"/><path d="M2 21c0-3 1.9-5.4 5.2-6"/></svg>
+      Fady &amp; rites
+    </button>
+  </nav>
+
+  <main class="right-panel" id="rp">
+    <div class="ph">
+      <div class="ph-txt">Choisissez une date</div>
+      <div>La fiche du jour s'affiche ici.</div>
     </div>
-    <div class="panel">
+  </main>
+
+  <aside class="extra">
+    <section class="panel">
       <div class="ptitle">Horloge des vintana</div>
       <div id="hzBody"></div>
-      <div style="display:flex;gap:8px;margin-top:10px">
+      <div class="seg" style="grid-template-columns:1fr 1fr;margin-top:12px">
         <button class="nlvl-btn" id="btnFixe" onclick="setMinMode('fixe')">Fixe</button>
         <button class="nlvl-btn" id="btnMobile" onclick="setMinMode('mobile')">Mobile</button>
       </div>
-    </div>
-    <div class="panel" id="pMoon" style="display:none">
-      <div class="ptitle">Phase Lunaire</div>
+    </section>
+    <section class="panel">
+      <div class="ptitle">D&eacute;but du mois</div>
+      <div class="seg" style="grid-template-columns:1fr 1fr">
+        <button class="nlvl-btn" id="btnNiv1" onclick="setNiveau(1)">Miondrika</button>
+        <button class="nlvl-btn active-niv" id="btnNiv2" onclick="setNiveau(2)">Mitraka</button>
+        <button class="nlvl-btn" id="btnNiv3" onclick="setNiveau(3)">Matin-ko velona</button>
+        <button class="nlvl-btn" id="btnNiv4" onclick="setNiveau(4)">Manendry</button>
+      </div>
+      <div id="niv-desc"><span class="niv-tag">Mitraka</span>Le 1er jour du mois = toujours le jour de la nouvelle lune.</div>
+    </section>
+    <section class="panel" id="pMoon" style="display:none">
+      <div class="ptitle">Phase lunaire</div>
       <div class="moon-box">
         <div class="moon-icon" id="mIcon"></div>
         <div class="moon-name" id="mName"></div>
         <div class="moon-age" id="mAge"></div>
       </div>
-    </div>
-    <div class="panel" id="pJour" style="display:none">
-      <div class="ptitle">Jour de la Semaine</div>
+    </section>
+    <section class="panel" id="pJour" style="display:none">
+      <div class="ptitle">Jour de la semaine</div>
       <div class="jour-box">
         <div class="jour-fr" id="jFr"></div>
         <div class="jour-mg" id="jMg"></div>
         <div class="jour-nat" id="jNat"></div>
       </div>
-    </div>
-    <div class="panel" id="pVolana" style="display:none">
-      <div class="ptitle">Mois Lunaire Malgache</div>
+    </section>
+    <section class="panel" id="pVolana" style="display:none">
+      <div class="ptitle">Mois lunaire malgache</div>
       <div class="volana-box">
         <div class="volana-n" id="vName"></div>
         <div class="volana-s" id="vSign"></div>
@@ -256,36 +365,27 @@ input[type=text]:focus{border-color:var(--gold);}
       </div>
       <div class="prog-bg"><div class="prog-fill" id="pFill" style="width:0%"></div></div>
       <div class="prog-lbl" id="pLbl"></div>
-    </div>
-  </div>
-  <div class="right-panel" id="rp">
-    <div class="vcard">
-      <div class="ph">
-        <div class="ph-icon">🌙</div>
-        <div class="ph-txt">Consultez votre destin</div>
-        <div class="ph-sub">Sélectionnez une date et calculez votre vintana</div>
-      </div>
-    </div>
-  </div>
+    </section>
+  </aside>
 </div>
 <footer>
-  <div>Alimanaka · Fanandroana Malagasy · Méthode Isa Lava</div>
-  <div style="margin-top:5px;opacity:.5">"Vintana tsy namono — Les astres ne blessent pas, le destin ne tue point"</div>
+  <div class="proverbe">&laquo; Vintana tsy namono &raquo;</div>
+  <div>Les astres ne blessent pas, le destin ne tue point.</div>
 </footer>
 </div>
 <input type="file" id="ftFile" accept=".json,application/json" style="display:none" onchange="ftCharger(this)"/>
-<div class="pf-modal" id="pfModal" style="display:none">
+<div class="pf-modal" id="pfModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="pfTitre">
   <div class="panel pf-box">
-    <div class="ptitle">Nouveau profil</div>
-    <div class="pf-lbl">Nom</div>
-    <input type="text" id="pfNom" maxlength="40"/>
-    <div class="pf-lbl">Date de naissance</div>
+    <div class="ptitle" id="pfTitre">Nouveau profil</div>
+    <label class="pf-lbl" for="pfNom">Nom</label>
+    <input type="text" id="pfNom" maxlength="40" autocomplete="off"/>
+    <label class="pf-lbl" for="pfNaiss">Date de naissance</label>
     <input type="date" id="pfNaiss" min="1600-01-16" max="2050-12-14"/>
-    <div class="pf-lbl">Lieu (heures)</div>
+    <label class="pf-lbl" for="pfLieu">Lieu (pour les heures)</label>
     <select class="pf-sel" id="pfLieu"></select>
     <div class="pf-err" id="pfErr"></div>
-    <button class="btn-p" onclick="pfSave()">&#10022; Enregistrer le profil</button>
-    <button class="btn-s" id="pfCancel" style="margin:7px 0 0" onclick="pfClose()">Annuler</button>
+    <button class="btn-p" onclick="pfSave()">Enregistrer le profil</button>
+    <button class="btn-s" id="pfCancel" onclick="pfClose()">Annuler</button>
   </div>
 </div>
 <script>
@@ -5963,6 +6063,8 @@ var NL = [
 // =======================================
 
 var NIVEAU = 2;
+// Noms affiches des niveaux (choisis par l'utilisateur ; index = numero du niveau)
+var NIV_NOM = ['', 'Miondrika', 'Mitraka', 'Matin-ko velona', 'Manendry'];
 var CAL_ON = false, CAL_Y = 0, CAL_M = 0;
 
 function pad2(n) { return n < 10 ? '0' + n : '' + n; }
@@ -5980,7 +6082,7 @@ function setNiveau(n) {
   toggleClass(document.getElementById('btnNiv3'), 'active-niv', n === 3);
   toggleClass(document.getElementById('btnNiv4'), 'active-niv', n === 4);
   var desc = document.getElementById('niv-desc');
-  var tag = '<span style="color:#e8b96a;font-size:10px;letter-spacing:2px">NIVEAU ' + n + '</span><br>';
+  var tag = '<span class="niv-tag">' + NIV_NOM[n] + '</span>';
   if (n === 1) {
     desc.innerHTML = tag + 'NL 00h00-11h59 : 1er jour = jour de la NL.<br>NL 12h00-23h59 : 1er jour = lendemain.';
   } else if (n === 3) {
@@ -5991,9 +6093,58 @@ function setNiveau(n) {
     desc.innerHTML = tag + 'Le 1er jour du mois = toujours le jour de la nouvelle lune.';
   }
   pfRender();
-  if (CAL_ON) { renderCalendar(); return; }
-  var val = document.getElementById('dp').value;
-  if (val && document.getElementById('pMoon').style.display !== 'none') calculate();
+  refreshVue(false);
+}
+
+// Theme de fond : soleil (defaut), corail, ciel, lilas ; garde sur l'appareil
+function setTheme(t) {
+  if (t === 'soleil') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('alimanaka_theme', t); } catch (e) {}
+  // Barre du navigateur (Safari, Chrome) a la couleur du fond
+  var fonds = {soleil: '#FFEFC2', corail: '#FFE1D6', ciel: '#DCEBFF', lilas: '#ECE3FF'};
+  var metas = document.getElementsByName('theme-color');
+  for (var m = 0; m < metas.length; m++) metas[m].setAttribute('content', fonds[t]);
+  // Le rond montre la couleur actuelle ; le menu ne propose que les autres
+  el('thBtn').style.background = fonds[t];
+  var ids = {soleil: 'thSoleil', corail: 'thCorail', ciel: 'thCiel', lilas: 'thLilas'};
+  for (var k in ids) el(ids[k]).hidden = (k === t);
+  thMenu(false);
+}
+
+// Ouvre ou ferme le menu des couleurs (sans argument : bascule)
+function thMenu(ouvrir) {
+  if (ouvrir === undefined) ouvrir = el('thMenu').hidden;
+  el('thMenu').hidden = !ouvrir;
+  el('thBtn').setAttribute('aria-expanded', ouvrir ? 'true' : 'false');
+}
+
+// Un toucher hors du menu le referme
+document.addEventListener('click', function(e) {
+  var w = document.querySelector('.th-wrap');
+  if (w && !w.contains(e.target)) thMenu(false);
+});
+
+// Onglet actif (Jour, Calendrier, Meilleurs jours, Fady & rites)
+function setNav(id) {
+  var t = ['tabJour', 'tabCal', 'tabBest', 'tabFady'];
+  for (var i = 0; i < t.length; i++) {
+    toggleClass(el(t[i]), 'on', t[i] === id);
+    if (t[i] === id) el(t[i]).setAttribute('aria-current', 'page');
+    else el(t[i]).removeAttribute('aria-current');
+  }
+  var r = el('rp').getBoundingClientRect();
+  if (r.top < 0) window.scrollTo(0, window.pageYOffset + r.top - 12);
+}
+
+// Redessine la vue ouverte (nouvelleDate : la date choisie a change)
+function refreshVue(nouvelleDate) {
+  var on = document.querySelector('.tab.on');
+  var v = on ? on.id : 'tabJour';
+  if (v === 'tabCal') { if (nouvelleDate) showCalendar(); else renderCalendar(); }
+  else if (v === 'tabBest') { if (!nouvelleDate) meilleursJours(); }
+  else if (v === 'tabFady') { if (!nouvelleDate) showFadyRites(); }
+  else calculate();
 }
 
 function jourNom(j, total) {
@@ -6070,14 +6221,6 @@ function setToday() {
 
 function el(id) { return document.getElementById(id); }
 
-function makeDots(j, total) {
-  var html = '';
-  for (var i = 0; i < total; i++) {
-    html += '<div class="dot ' + (i < j ? 'dot-on' : 'dot-off') + '"></div>';
-  }
-  return html;
-}
-
 function makeActs(arr, cls, icon) {
   var html = '';
   for (var i = 0; i < arr.length; i++) {
@@ -6090,6 +6233,7 @@ function calculate() {
   var val = el('dp').value;
   if (!val) { alert('Veuillez choisir une date'); return; }
   CAL_ON = false;
+  setNav('tabJour');
   var p = val.split('-');
   var date = new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10));
   var res  = compute(date);
@@ -6105,7 +6249,7 @@ function calculate() {
   el('pMoon').style.display = 'block';
   el('pJour').style.display = 'block';
   el('pVolana').style.display = 'block';
-  el('mIcon').innerHTML  = moon.icon;
+  el('mIcon').innerHTML  = moonSvg(moon.ph, moon.name);
   el('mName').innerHTML  = moon.name;
   el('mAge').innerHTML   = 'Andro ' + moon.age + " amin\'ny volana";
   el('jFr').innerHTML    = jour.fr;
@@ -6117,14 +6261,13 @@ function calculate() {
   jnat.style.border      = '1px solid ' + jour.c + '44';
   el('vName').innerHTML  = moisNom;
   el('vSign').innerHTML  = v.e;
-  el('vType').innerHTML  = (mi.t === 'Rentim-bintana') ? '&#9733; RENTIM-BINTANA' : '&#9675; ZANA-BINTANA';
+  el('vType').innerHTML  = (mi.t === 'Rentim-bintana') ? 'Rentim-bintana' : 'Zana-bintana';
   el('pFill').style.width = Math.min(100, Math.round((delta/29)*100)) + '%';
   el('pLbl').innerHTML   = 'Andro ' + (delta+1) + " amin\'ny volana";
 
   var fc = (v.f === true)  ? 'faste'  : (v.f === false) ? 'nefaste' : '';
   var bc = (v.f === true)  ? 'bf'     : (v.f === false) ? 'bn'      : 'bx';
-  var bl = (v.f === true)  ? 'FASTE'  : (v.f === false) ? 'NEFASTE' : 'NEUTRE';
-  var dots = makeDots(v.j, v.total);
+  var bl = (v.f === true)  ? 'Faste'  : (v.f === false) ? 'N&eacute;faste' : 'Neutre';
   var okH  = makeActs(info.ok,  'aok', '&#10003;');
   var nkH  = makeActs(info.nok, 'ank', '&#10007;');
 
@@ -6137,26 +6280,17 @@ function calculate() {
   el('rp').innerHTML =
     '<div class="vcard ' + fc + ' anim">' +
       '<div class="vhead">' +
-        '<div class="vmeta">' + jn.toUpperCase() + ' &bull; NIVEAU ' + NIVEAU + '<br>' +
-          '<span style="opacity:.65;font-size:10px">' + dateStr + '</span></div>' +
+        '<div class="vmeta">' + dateStr.charAt(0).toUpperCase() + dateStr.substr(1) + '<br>D&eacute;but du mois : ' + NIV_NOM[NIVEAU] + '</div>' +
         '<div class="badge ' + bc + '">' + bl + '</div>' +
       '</div>' +
-      '<div style="font-size:11px;color:#c9933a;letter-spacing:2px;margin-bottom:4px;opacity:.9">' + jn + '</div>' +
-      '<div class="vname">' + v.nom + '</div>' +
+      '<div class="vname">' + v.nom + ' <span class="vjn">' + jn + '</span></div>' +
       '<div class="vsign">' + moisNom + '</div>' +
-      '<div class="dots-row">' + dots + '<span class="dot-lbl">' + jn + ' (andro ' + v.j + '/' + v.total + ')</span></div>' +
-      '<div class="chips">' +
-        '<div class="chip">' + v.e + '</div>' +
-        '<div class="chip">&#128205; ' + v.p + '</div>' +
-        '<div class="chip">Volana ' + moisNom + '</div>' +
-        '<div class="chip">J' + (delta+1) + '</div>' +
-      '</div>' +
       '<div class="vdesc">' + info.desc + '</div>' +
+      buildProfil(res, date) +
     '</div>' +
-    buildProfil(res, date) +
-    buildHeures(date) +
+    buildNaninanana(moon, delta) +
     actsHtml +
-    buildNaninanana(moon, delta);
+    buildHeures(date);
 }
 
 
@@ -6174,13 +6308,13 @@ function buildNaninanana(moon, delta) {
   var terakaHtml = entry.teraka.split('\n').join('<br>');
 
   var html = '<div class="nani-outer anim">';
-  html += '<div class="ptitle" style="margin-bottom:14px">NANINANANA</div>';
+  html += '<div class="ptitle" style="margin:0">Naninanana</div>';
 
   // Sous-section 1 : Phase lunaire
   html += '<div class="nani-box">';
   html += '<div class="nani-sub-title">Phase Lunaire</div>';
-  html += '<div class="moon-box" style="padding:8px 0">';
-  html += '<div class="moon-icon" style="font-size:36px">' + moon.icon + '</div>';
+  html += '<div class="moon-box">';
+  html += '<div class="moon-icon">' + moonSvg(moon.ph, moon.name) + '</div>';
   html += '<div class="moon-name">' + moon.name + '</div>';
   html += "<div class=\"moon-age\">Andro " + jourCycle + " amin'ny volana</div>";
   html += '</div></div>';
@@ -6212,6 +6346,7 @@ function showCalendar() {
   CAL_Y = parseInt(p[0], 10);
   CAL_M = parseInt(p[1], 10) - 1;
   CAL_ON = true;
+  setNav('tabCal');
   renderCalendar();
 }
 
@@ -6339,16 +6474,16 @@ function decalageDebut(r) {
 // Lune dessinee (SVG 20px) pour l'index de phase ph (0-7) calcule dans compute()
 function moonSvg(ph, name) {
   var html = '<svg class="cal-moon" width="20" height="20" viewBox="0 0 20 20"><title>' + name + '</title>' +
-             '<circle cx="10" cy="10" r="8" fill="#2a2418" stroke="rgba(240,232,213,.55)" stroke-width="1"/>';
+             '<circle class="mn-d" cx="10" cy="10" r="8"/>';
   if (ph === 4) {
-    html += '<circle cx="10" cy="10" r="8" fill="#f0e8d5"/>';
+    html += '<circle class="mn-l" cx="10" cy="10" r="8"/>';
   } else if (ph !== 0) {
     var waxing = ph < 4;
     var k = (1 - Math.cos(2 * Math.PI * ph / 8)) / 2;
     var rx = (Math.abs(1 - 2 * k) * 8).toFixed(2);
     var limb = waxing ? 1 : 0;
     var term = ((k < 0.5) === waxing) ? 0 : 1;
-    html += '<path d="M10 2 A8 8 0 0 ' + limb + ' 10 18 A' + rx + ' 8 0 0 ' + term + ' 10 2 Z" fill="#f0e8d5"/>';
+    html += '<path d="M10 2 A8 8 0 0 ' + limb + ' 10 18 A' + rx + ' 8 0 0 ' + term + ' 10 2 Z" class="mn-l"/>';
   }
   return html + '</svg>';
 }
@@ -6361,6 +6496,7 @@ function renderCalendar() {
   var phases = monthPhases(CAL_Y, CAL_M);
   var prevMois = '';
   var rows = '';
+  var natal = (PF_ACTIF >= 0) ? pfNatal(PROFILS[PF_ACTIF]) : null;
   for (var d = 1; d <= nb; d++) {
     var s = CAL_Y + '-' + pad2(CAL_M + 1) + '-' + pad2(d);
     var date = new Date(CAL_Y, CAL_M, d);
@@ -6381,6 +6517,10 @@ function renderCalendar() {
     var v = res.v;
     var pz = phases[d];
     var dc =(v.f === true) ? 'dot-f' : (v.f === false) ? 'dot-n' : 'dot-x';
+    if (natal) {
+      var pp = pfPastille(natal, res, date);
+      dc = 'pdbl dot-p' + pp.jour + ' ring-p' + pp.mois;
+    }
     rows += '<div class="cal-row' + we + (s === sel ? ' active' : '') + '" onclick="calPick(\'' + s + '\')">' + head +
             '<div class="cal-mid">' + moonSvg(pz ? pz.ph : res.moon.ph, pz ? pz.nom + ' ' + pz.heure : res.moon.name) +
             '<span class="cal-h">' + (pz ? pz.heure : '') + '</span></div>' +
@@ -6396,6 +6536,12 @@ function renderCalendar() {
   for (var y = 1600; y <= 2050; y++) {
     optY += '<option value="' + y + '"' + (y === CAL_Y ? ' selected' : '') + '>' + y + '</option>';
   }
+  var legende = '';
+  for (var p = 0; p < PASTILLES.length; p++) {
+    legende += '<span><span class="dot dot-p' + p + '"></span>' + PASTILLES[p] + '</span>';
+  }
+  legende += '<span><span class="dot pdbl ring-x"></span>Cercle : mois natal</span>' +
+             '<span><span class="dot dot-c dot-p2"></span>Centre : jour natal</span>';
 
   el('rp').innerHTML =
     '<div class="cpanel anim">' +
@@ -6404,14 +6550,14 @@ function renderCalendar() {
         '<div class="cal-title">' +
           '<span class="cal-sel">' + moisFr[CAL_M] + '<select id="calSelM" onchange="calSetMY()">' + optM + '</select></span> ' +
           '<span class="cal-sel">' + CAL_Y + '<select id="calSelY" onchange="calSetMY()">' + optY + '</select></span>' +
-          '<div class="vmeta">NIVEAU ' + NIVEAU + '</div></div>' +
+          '<div class="vmeta">D&eacute;but du mois : ' + NIV_NOM[NIVEAU] + '</div></div>' +
         '<button class="cal-nav" onclick="calMove(1)">&#8250;</button>' +
       '</div>' +
       rows +
-      '<div class="cal-legend">' +
+      '<div class="cal-legend">' + (natal ? legende :
         '<span><span class="dot dot-f"></span>Faste</span>' +
         '<span><span class="dot dot-n"></span>N&eacute;faste</span>' +
-        '<span><span class="dot dot-x"></span>Neutre</span>' +
+        '<span><span class="dot dot-x"></span>Neutre</span>') +
       '</div>' +
     '</div>';
 }
@@ -6467,8 +6613,7 @@ function pfRender() {
   var d = pf.naissance.split('-');
   el('pfInfo').innerHTML = 'N&eacute;(e) le ' + d[2] + '/' + d[1] + '/' + d[0] + '<br>' +
     'Vintana du jour : <b>' + n.jn + ' ' + n.jour + '</b><br>' +
-    'Mois natal : <b>' + n.mois + '</b><br>' +
-    'Lieu : <b>' + pfLieu().nom + '</b>';
+    'Mois natal : <b>' + n.mois + '</b>';
 }
 
 // Lieu du profil actif (Antananarivo par defaut)
@@ -6482,7 +6627,7 @@ function pfLoad(i) {
   pfStore();
   pfRender();
   renderHorloge();
-  if (el('pMoon').style.display !== 'none' && !CAL_ON) calculate();
+  refreshVue(false);
 }
 
 function pfOpen() {
@@ -6559,15 +6704,37 @@ function pfAnalyse(n, res, date) {
   };
 }
 
+// Pastille personnelle du calendrier (indices de PASTILLES) :
+// centre = jour natal <-> jour (Mandratra l'emporte sur Andro manindry),
+// cercle = mois natal <-> jour
+var PASTILLES = ['Manarina', 'Mamelona', 'Milamina', 'Manindry', 'Mandratra'];
+
+function pfPastille(n, res, date) {
+  var an = pfAnalyse(n, res, date);
+  var jour = PASTILLES.indexOf(an.axes[3][1].nom);
+  if (jour < 0) jour = 2;
+  if (an.manindry && jour !== 4) jour = 3;
+  var mois = PASTILLES.indexOf(an.axes[1][1].nom);
+  return {jour: jour, mois: mois < 0 ? 2 : mois};
+}
+
 function buildProfil(res, date) {
   if (PF_ACTIF < 0) return '';
   var pf = PROFILS[PF_ACTIF];
   var n = pfNatal(pf);
   var an = pfAnalyse(n, res, date);
-  var axes = an.axes;
-  var nbF = an.nbF, nbN = an.nbN, rows = '';
+  // Recap du jour : 4 comparaisons ponderees (favorable +poids, Mandratra -poids, neutre 0)
+  var axes = [
+    ['Jour natal (' + n.jour + ') &rarr; jour (' + res.v.nom + ')', pfRel(n.jour, res.v.nom, false), 40],
+    ['Jour natal (' + n.jour + ') &rarr; mois (' + res.moisNom + ')', pfRel(n.jour, res.moisNom, false), 20],
+    ['Mois natal (' + n.mois + ') &rarr; jour (' + res.v.nom + ')', pfRel(n.mois, res.v.nom, false), 25],
+    ['Mois natal (' + n.mois + ') &rarr; mois (' + res.moisNom + ')', pfRel(n.mois, res.moisNom, true), 15]
+  ];
+  var score = 0, rows = '';
   for (var i = 0; i < axes.length; i++) {
     var a = axes[i][1];
+    if (a.c === 'f') score += axes[i][2];
+    if (a.c === 'n') score -= axes[i][2];
     rows += '<div class="pl-row"><span class="pl-k">' + axes[i][0] + '</span>' +
       '<span class="pl-' + a.c + '">' + a.nom + ' &middot; ' + a.t + '</span></div>';
   }
@@ -6583,11 +6750,13 @@ function buildProfil(res, date) {
   if (res.v.nom === n.jour) {
     notes += '<div class="pl-note pl-x">Jour de votre vintana natal : fady pour les actes sur le corps (Mandratra tonon\'andro).</div>';
   }
-  var bc = nbN ? 'bn' : (nbF ? 'bf' : 'bx');
-  var bl = nbN ? 'D&Eacute;FAVORABLE' : (nbF ? 'FAVORABLE' : 'NEUTRE');
-  return '<div class="apanel anim">' +
+  // Zone neutre entre -20 et +20 ; les alertes ci-dessus ne changent pas le verdict
+  var bc = score >= 20 ? 'bf' : (score <= -20 ? 'bn' : 'bx');
+  var bl = score >= 20 ? 'Favorable' : (score <= -20 ? 'D&eacute;favorable' : 'Neutre');
+  // Insere dans la fiche du jour (vcard)
+  return '<div class="vperso">' +
       '<div class="vhead" style="margin-bottom:6px"><div class="ptitle" style="margin:0">Lecture personnelle &middot; ' + esc(pf.nom) + '</div>' +
-      '<div class="badge ' + bc + '">' + bl + '</div></div>' +
+      '<div class="badge ' + bc + '" title="Score pond&eacute;r&eacute;">' + bl + ' ' + (score > 0 ? '+' : '') + score + ' %</div></div>' +
       rows + notes +
     '</div>';
 }
@@ -6761,11 +6930,16 @@ function buildHeures(date) {
 // Meilleurs jours sur 30 jours pour le profil actif
 // Score : nature du jour (+1/-1), axes personnels (+1 favorable, -2 Mandratra),
 // Andro manindry (-2), Volana maty (jours 29-30 : -1)
-function meilleursJours() {
-  var val = el('dp').value;
-  if (!val) { alert('Veuillez choisir une date'); return; }
+// Date de depart choisie dans la vue ; vide = aujourd'hui (valeur a l'ouverture de l'appli)
+var MJ_DEBUT = '';
+
+function meilleursJours(debut) {
+  if (debut !== undefined) MJ_DEBUT = debut;
+  var t = new Date();
+  var val = MJ_DEBUT || (t.getFullYear() + '-' + pad2(t.getMonth() + 1) + '-' + pad2(t.getDate()));
   if (PF_ACTIF < 0) { pfOpen(); return; }
   CAL_ON = false;
+  setNav('tabBest');
   var p = val.split('-');
   var n = pfNatal(PROFILS[PF_ACTIF]);
   var jours = [];
@@ -6796,7 +6970,12 @@ function meilleursJours() {
   for (var b = 0; b < Math.min(7, tri.length); b++) best += ligne(tri[b]);
   for (var w = tri.length - 1; w >= Math.max(0, tri.length - 5); w--) worst += ligne(tri[w]);
   el('rp').innerHTML = '<div class="apanel anim">' +
-    '<div class="ptitle">Meilleurs jours &middot; ' + esc(PROFILS[PF_ACTIF].nom) + ' &middot; 30 jours</div>' + best +
+    '<div class="ptitle">Meilleurs jours &middot; ' + esc(PROFILS[PF_ACTIF].nom) + ' &middot; 30 jours</div>' +
+    '<label class="pf-lbl" for="mjDebut">&Agrave; partir du</label>' +
+    '<div class="date-row" style="margin-bottom:14px">' +
+      '<input type="date" id="mjDebut" value="' + val + '" min="1600-01-16" max="2050-12-14" onchange="if(this.value)meilleursJours(this.value)"/>' +
+      '<button class="btn-s" onclick="meilleursJours(\'\')">Aujourd\'hui</button>' +
+    '</div>' + best +
     '<div class="ptitle" style="margin-top:18px">Jours &agrave; &eacute;viter</div>' + worst +
     '<div class="pl-note pl-k">Cliquez sur un jour pour ouvrir sa fiche.</div></div>';
 }
@@ -6833,6 +7012,7 @@ function setFtVintana(v) {
 
 function showFadyRites() {
   CAL_ON = false;
+  setNav('tabFady');
   if (PF_ACTIF >= 0) FT_VINTANA = pfNatal(PROFILS[PF_ACTIF]).jour;
   if (!FT_VINTANA) FT_VINTANA = VO[0].nom;
   renderFadyRites();
@@ -6927,7 +7107,9 @@ setToday();
 try { if (localStorage.getItem('alimanaka_minutes') === 'mobile') MIN_MODE = 'mobile'; } catch (e) {}
 try { if (localStorage.getItem('alimanaka_langue') === 'mg') FT_LANGUE = 'mg'; } catch (e) {}
 try { var ftSauve = localStorage.getItem('alimanaka_textes'); if (ftSauve) FADY_RITES = JSON.parse(ftSauve); } catch (e) { FADY_RITES = null; }
+setTheme(document.documentElement.getAttribute('data-theme') || 'soleil');
 pfInit();
+calculate();
 renderHorloge();
 setInterval(renderHorloge, 20000);
 

@@ -189,6 +189,10 @@ input[type=text]:focus{border-color:var(--gold);}
           <button class="nlvl-btn" id="btnNiv1" onclick="setNiveau(1)">Niveau 1</button>
           <button class="nlvl-btn active-niv" id="btnNiv2" onclick="setNiveau(2)">Niveau 2</button>
         </div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="nlvl-btn" id="btnNiv3" onclick="setNiveau(3)">Niveau 3</button>
+          <button class="nlvl-btn" id="btnNiv4" onclick="setNiveau(4)">Niveau 4</button>
+        </div>
         <div id="niv-desc" style="margin-top:10px;padding:10px 12px;background:rgba(201,147,58,.06);border:1px solid rgba(201,147,58,.15);border-radius:4px;font-size:12px;line-height:1.6;color:var(--muted)">
           <span style="color:var(--gold2);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px">NIVEAU 2</span><br>
           Le premier jour du mois commence toujours le jour de la nouvelle lune.
@@ -5938,10 +5942,16 @@ function setNiveau(n) {
   NIVEAU = n;
   toggleClass(document.getElementById('btnNiv1'), 'active-niv', n === 1);
   toggleClass(document.getElementById('btnNiv2'), 'active-niv', n === 2);
+  toggleClass(document.getElementById('btnNiv3'), 'active-niv', n === 3);
+  toggleClass(document.getElementById('btnNiv4'), 'active-niv', n === 4);
   var desc = document.getElementById('niv-desc');
   var tag = '<span style="color:#e8b96a;font-size:10px;letter-spacing:2px">NIVEAU ' + n + '</span><br>';
   if (n === 1) {
     desc.innerHTML = tag + 'NL 00h00-11h59 : 1er jour = jour de la NL.<br>NL 12h00-23h59 : 1er jour = lendemain.';
+  } else if (n === 3) {
+    desc.innerHTML = tag + 'NL 00h00-11h59 : 1er jour = veille de la NL.<br>NL 12h00-23h59 : 1er jour = jour de la NL.';
+  } else if (n === 4) {
+    desc.innerHTML = tag + 'Premier croissant : 1er jour = jour o&ugrave; la Lune atteint 4 % d\'&eacute;clairement (0 % &agrave; la nouvelle lune, 100 % &agrave; la pleine lune).';
   } else {
     desc.innerHTML = tag + 'Le 1er jour du mois = toujours le jour de la nouvelle lune.';
   }
@@ -5993,11 +6003,13 @@ function compute(date) {
     var r = NL[i];
     var nlMs = dms(r[1]);
     if (NIVEAU === 1 && r[4] >= 12) nlMs += 86400000;
+    if (NIVEAU >= 3) nlMs += decalageDebut(r) * 86400000;
     if (nlMs <= ms) nl = r;
     else break;
   }
   var nlMs2 = dms(nl[1]);
   if (NIVEAU === 1 && nl[4] >= 12) nlMs2 += 86400000;
+  if (NIVEAU >= 3) nlMs2 += decalageDebut(nl) * 86400000;
   var delta = Math.round((ms - nlMs2) / 86400000);
   var v = getVintana(nl[3], delta);
   var mi = MI[nl[2]];
@@ -6256,6 +6268,36 @@ function monthPhases(y, m) {
     }
   }
   return res;
+}
+
+// Fraction de l'intervalle NL -> PL ou l'eclairement atteint 4 %.
+// Eclairement = (1 - cos a) / 2, l'angle a allant de 0 (NL, 0 %) a 180 deg (PL, 100 %)
+// proportionnellement au temps : a = acos(1 - 2 * 0.04).
+var FRAC_4PC = Math.acos(1 - 2 * 0.04) / Math.PI;
+var CROISSANT = {};
+
+// Niveau 4 : jours entre la date de NL de la table et le jour ou la Lune atteint 4 %.
+// Meme base horaire que la table : UTC avant 1912, heure de Madagascar (UTC+3) ensuite.
+function decalageCroissant(r) {
+  if (CROISSANT[r[0]] !== undefined) return CROISSANT[r[0]];
+  var y = parseInt(r[1].substr(0, 4), 10);
+  var tz = (r[1] >= '1912') ? 3 / 24 : 0;
+  var jd = dms(r[1]) / 86400000 + 2440587.5 + r[4] / 24 - tz;
+  var k = Math.round((jd - 2451550.09766) / 29.530588861);
+  var dt = deltaT(y) / 86400;
+  var tNL = phaseJDE(k, 0) - dt, tPL = phaseJDE(k, 2) - dt;
+  var t4 = tNL + (tPL - tNL) * FRAC_4PC + tz;
+  var jour4 = Math.floor(t4 - 2440587.5);
+  CROISSANT[r[0]] = jour4 - dms(r[1]) / 86400000;
+  return CROISSANT[r[0]];
+}
+
+// Decalage (en jours) du 1er jour du mois par rapport a la date de NL de la table
+// Niveau 3 : NL avant 12h -> veille, sinon jour de la NL ; Niveau 4 : croissant a 4 %
+function decalageDebut(r) {
+  if (NIVEAU === 3) return (r[4] < 12) ? -1 : 0;
+  if (NIVEAU === 4) return decalageCroissant(r);
+  return 0;
 }
 
 // Lune dessinee (SVG 20px) pour l'index de phase ph (0-7) calcule dans compute()

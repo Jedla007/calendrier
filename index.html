@@ -159,6 +159,28 @@ input[type=text]:focus{border-color:var(--gold);}
 .pl-k{color:var(--muted);}
 .pl-f{color:#8ac88e;}.pl-n{color:#c08080;}.pl-x{color:#7a9ab5;}
 .pl-note{margin-top:10px;font-size:14px;line-height:1.7;}
+/* Fady & rites */
+.ft-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px;}
+.ft-bar .nlvl-btn{flex:none;padding:7px 14px;}
+.ft-bar .pf-sel{width:auto;flex:1;min-width:150px;margin:0;}
+.ft-sec{margin-top:18px;}
+.ft-t{font-size:17px;color:var(--cream);margin:10px 0 6px;}
+.ft-h{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin:12px 0 6px;}
+.ft-p{font-size:14px;line-height:1.7;margin-bottom:6px;}
+.ft-li,.ft-li2{display:flex;gap:8px;font-size:14px;line-height:1.7;margin-bottom:3px;}
+.ft-li2{padding-left:20px;}
+.ft-li>span,.ft-li2>span{color:var(--gold);flex:none;min-width:12px;}
+.ft-li>div,.ft-li2>div{flex:1;min-width:0;}
+.ft-box{background:var(--surface2);border:1px solid rgba(201,147,58,.15);border-radius:4px;padding:12px 14px;margin:8px 0;font-size:14px;line-height:1.7;}
+/* Heures */
+.hz-t{font-family:'Space Mono',monospace;font-size:26px;color:var(--cream);text-align:center;margin-bottom:6px;}
+.hr-row{display:grid;grid-template-columns:52px 1fr 1fr 74px;gap:8px;align-items:center;padding:6px 6px;border-bottom:1px solid rgba(201,147,58,.06);font-size:14px;}
+.hr-row.nuit{background:rgba(90,107,124,.08);}
+.hr-row.active{background:rgba(201,147,58,.16);}
+.hr-row.mj{grid-template-columns:74px 1fr 34px 1.4fr;cursor:pointer;}
+.hr-row.mj:hover{background:rgba(201,147,58,.06);}
+.hr-h{font-family:'Space Mono',monospace;font-size:11px;color:var(--gold2);}
+@media(max-width:480px){.hr-row{grid-template-columns:44px 1fr 1fr 60px;gap:5px;font-size:13px;}.hr-row.mj{grid-template-columns:64px 1fr 28px;}.hr-row.mj .pl-k{grid-column:1/-1;font-size:12px;}}
 ::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:rgba(201,147,58,.3);border-radius:3px;}
 </style>
 </head>
@@ -183,6 +205,8 @@ input[type=text]:focus{border-color:var(--gold);}
       <button class="btn-s" onclick="setToday()">Aujourd'hui</button>
       <button class="btn-p" onclick="calculate()">✦ Calculer le Vintana</button>
       <button class="btn-s" style="margin:7px 0 0" onclick="showCalendar()">&#128197; Vue calendrier</button>
+      <button class="btn-s" style="margin:7px 0 0" onclick="meilleursJours()">&#10022; Meilleurs jours (30 j)</button>
+      <button class="btn-s" style="margin:7px 0 0" onclick="showFadyRites()">&#9775; Fady &amp; rites</button>
       <div style="margin-top:14px">
         <div class="ptitle" style="margin-bottom:8px">Niveau du Calendrier</div>
         <div style="display:flex;gap:8px">
@@ -197,6 +221,14 @@ input[type=text]:focus{border-color:var(--gold);}
           <span style="color:var(--gold2);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px">NIVEAU 2</span><br>
           Le premier jour du mois commence toujours le jour de la nouvelle lune.
         </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="ptitle">Horloge des vintana</div>
+      <div id="hzBody"></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="nlvl-btn" id="btnFixe" onclick="setMinMode('fixe')">Fixe</button>
+        <button class="nlvl-btn" id="btnMobile" onclick="setMinMode('mobile')">Mobile</button>
       </div>
     </div>
     <div class="panel" id="pMoon" style="display:none">
@@ -241,6 +273,7 @@ input[type=text]:focus{border-color:var(--gold);}
   <div style="margin-top:5px;opacity:.5">"Vintana tsy namono — Les astres ne blessent pas, le destin ne tue point"</div>
 </footer>
 </div>
+<input type="file" id="ftFile" accept=".json,application/json" style="display:none" onchange="ftCharger(this)"/>
 <div class="pf-modal" id="pfModal" style="display:none">
   <div class="panel pf-box">
     <div class="ptitle">Nouveau profil</div>
@@ -248,6 +281,8 @@ input[type=text]:focus{border-color:var(--gold);}
     <input type="text" id="pfNom" maxlength="40"/>
     <div class="pf-lbl">Date de naissance</div>
     <input type="date" id="pfNaiss" min="1600-01-16" max="2050-12-14"/>
+    <div class="pf-lbl">Lieu (heures)</div>
+    <select class="pf-sel" id="pfLieu"></select>
     <div class="pf-err" id="pfErr"></div>
     <button class="btn-p" onclick="pfSave()">&#10022; Enregistrer le profil</button>
     <button class="btn-s" id="pfCancel" style="margin:7px 0 0" onclick="pfClose()">Annuler</button>
@@ -6119,6 +6154,7 @@ function calculate() {
       '<div class="vdesc">' + info.desc + '</div>' +
     '</div>' +
     buildProfil(res, date) +
+    buildHeures(date) +
     actsHtml +
     buildNaninanana(moon, delta);
 }
@@ -6431,19 +6467,30 @@ function pfRender() {
   var d = pf.naissance.split('-');
   el('pfInfo').innerHTML = 'N&eacute;(e) le ' + d[2] + '/' + d[1] + '/' + d[0] + '<br>' +
     'Vintana du jour : <b>' + n.jn + ' ' + n.jour + '</b><br>' +
-    'Mois natal : <b>' + n.mois + '</b>';
+    'Mois natal : <b>' + n.mois + '</b><br>' +
+    'Lieu : <b>' + pfLieu().nom + '</b>';
+}
+
+// Lieu du profil actif (Antananarivo par defaut)
+function pfLieu() {
+  var i = (PF_ACTIF >= 0) ? PROFILS[PF_ACTIF].lieu : 0;
+  return LIEUX[i] || LIEUX[0];
 }
 
 function pfLoad(i) {
   PF_ACTIF = i;
   pfStore();
   pfRender();
+  renderHorloge();
   if (el('pMoon').style.display !== 'none' && !CAL_ON) calculate();
 }
 
 function pfOpen() {
   el('pfNom').value = '';
   el('pfNaiss').value = '';
+  var opts = '';
+  for (var i = 0; i < LIEUX.length; i++) opts += '<option value="' + i + '">' + LIEUX[i].nom + '</option>';
+  el('pfLieu').innerHTML = opts;
   el('pfErr').innerHTML = '';
   el('pfCancel').style.display = PROFILS.length ? 'block' : 'none';
   el('pfModal').style.display = 'flex';
@@ -6461,7 +6508,7 @@ function pfSave() {
   if (!naiss || naiss < '1600-01-16' || naiss > '2050-12-14') {
     el('pfErr').innerHTML = 'Date de naissance entre 1600 et 2050.'; return;
   }
-  PROFILS.push({nom: nom, naissance: naiss});
+  PROFILS.push({nom: nom, naissance: naiss, lieu: parseInt(el('pfLieu').value, 10) || 0});
   el('pfModal').style.display = 'none';
   pfLoad(PROFILS.length - 1);
 }
@@ -6488,36 +6535,49 @@ function pfRel(natal, consulte, memeMois) {
   return {nom: 'Milamina', t: 'neutre', c: 'x'};
 }
 
-function buildProfil(res, date) {
-  if (PF_ACTIF < 0) return '';
-  var pf = PROFILS[PF_ACTIF];
-  var n = pfNatal(pf);
+// Lecture personnelle d'un jour : 4 axes, Andro manindry, doubles
+function pfAnalyse(n, res, date) {
   var axes = [
     ['Mois natal (' + n.mois + ') &harr; mois (' + res.moisNom + ')', pfRel(n.mois, res.moisNom, true)],
     ['Mois natal (' + n.mois + ') &harr; jour (' + res.v.nom + ')', pfRel(n.mois, res.v.nom, false)],
     ['Jour natal (' + n.jour + ') &harr; mois (' + res.moisNom + ')', pfRel(n.jour, res.moisNom, false)],
     ['Jour natal (' + n.jour + ') &harr; jour (' + res.v.nom + ')', pfRel(n.jour, res.v.nom, false)]
   ];
-  var nbF = 0, nbN = 0, rows = '';
+  var nbF = 0, nbN = 0;
   for (var i = 0; i < axes.length; i++) {
-    var a = axes[i][1];
-    if (a.c === 'f') nbF++;
-    if (a.c === 'n') nbN++;
-    rows += '<div class="pl-row"><span class="pl-k">' + axes[i][0] + '</span>' +
-      '<span class="pl-' + a.c + '">' + a.nom + ' &middot; ' + a.t + '</span></div>';
-  }
-  var notes = '';
-  var rj = axes[3][1].nom, rm = axes[1][1].nom;
-  if (rj === 'Mandratra' && rm === 'Mandratra') {
-    notes += '<div class="pl-note pl-n">&#9888; Double choc d\'opposition (jour natal et mois natal) : &eacute;viter absolument de d&eacute;marrer un projet.</div>';
-  } else if (axes[3][1].c === 'f' && axes[1][1].c === 'f') {
-    notes += '<div class="pl-note pl-f">&#10022; Double harmonie : le jour soutient &agrave; la fois votre vintana du jour et votre mois natal.</div>';
+    if (axes[i][1].c === 'f') nbF++;
+    if (axes[i][1].c === 'n') nbN++;
   }
   var man = MANINDRY[n.jour] || [];
   var manindry = false;
   for (var k = 0; k < man.length; k++) { if (man[k] === date.getDay()) manindry = true; }
-  if (manindry) {
-    nbN++;
+  if (manindry) nbN++;
+  return {
+    axes: axes, nbF: nbF, nbN: nbN, manindry: manindry,
+    doubleChoc: axes[3][1].nom === 'Mandratra' && axes[1][1].nom === 'Mandratra',
+    doubleHarmonie: axes[3][1].c === 'f' && axes[1][1].c === 'f'
+  };
+}
+
+function buildProfil(res, date) {
+  if (PF_ACTIF < 0) return '';
+  var pf = PROFILS[PF_ACTIF];
+  var n = pfNatal(pf);
+  var an = pfAnalyse(n, res, date);
+  var axes = an.axes;
+  var nbF = an.nbF, nbN = an.nbN, rows = '';
+  for (var i = 0; i < axes.length; i++) {
+    var a = axes[i][1];
+    rows += '<div class="pl-row"><span class="pl-k">' + axes[i][0] + '</span>' +
+      '<span class="pl-' + a.c + '">' + a.nom + ' &middot; ' + a.t + '</span></div>';
+  }
+  var notes = '';
+  if (an.doubleChoc) {
+    notes += '<div class="pl-note pl-n">&#9888; Double choc d\'opposition (jour natal et mois natal) : &eacute;viter absolument de d&eacute;marrer un projet.</div>';
+  } else if (an.doubleHarmonie) {
+    notes += '<div class="pl-note pl-f">&#10022; Double harmonie : le jour soutient &agrave; la fois votre vintana du jour et votre mois natal.</div>';
+  }
+  if (an.manindry) {
     notes += '<div class="pl-note pl-n">&#9888; Andro manindry : le ' + JMG[date.getDay()].fr.toLowerCase() + ' est un jour n&eacute;faste pour le vintana ' + n.jour + '.</div>';
   }
   if (res.v.nom === n.jour) {
@@ -6533,8 +6593,343 @@ function buildProfil(res, date) {
 }
 
 
+// Fady, remedes et rites : textes importes par l'utilisateur (fichier alimanaka-textes.json),
+// jamais inclus dans l'application publiee. null tant que rien n'est importe.
+var FADY_RITES = null;
+
+// =======================================
+// HEURES : VINTANA ET PLANETES (ES5)
+// =======================================
+
+// Villes de Madagascar, toutes a UTC+3
+var LIEUX = [
+  {nom: 'Antananarivo', lat: -18.8792, lon: 47.5079},
+  {nom: 'Toamasina', lat: -18.1492, lon: 49.4023},
+  {nom: 'Mahajanga', lat: -15.7167, lon: 46.3167},
+  {nom: 'Fianarantsoa', lat: -21.4536, lon: 47.0858},
+  {nom: 'Toliara', lat: -23.3500, lon: 43.6667},
+  {nom: 'Antsiranana', lat: -12.2787, lon: 49.2917}
+];
+var EAT = 3 * 3600000;
+
+// Nature generale du jour (Isa x jour de semaine, d'apres OANA) : getDay 0 = dimanche
+var GRILLE = {
+  'Alahamady Vava':'+----+-', 'Alahamady Vonto':'----+--', 'Alahamady Vody':'----++-',
+  'Adaoro Vava':'+++--++', 'Adaoro Vody':'++++--+',
+  'Adizaoza Vava':'+++++--', 'Adizaoza Vody':'-+++-+-',
+  'Asorotany Vava':'++---+-', 'Asorotany Vonto':'-+++---', 'Asorotany Vody':'-+++-+-',
+  'Alahasaty Vava':'+----++', 'Alahasaty Vody':'+-+--++',
+  'Asombola Vava':'-+-----', 'Asombola Vody':'---+---',
+  'Adimizana Vava':'++-+-+-', 'Adimizana Vonto':'---+-+-', 'Adimizana Vody':'++-+-+-',
+  'Alakarabo Vava':'++--+--', 'Alakarabo Vody':'++----+',
+  'Alakaosy Vava':'--+++--', 'Alakaosy Vody':'--+++--',
+  'Adijady Vava':'-++---+', 'Adijady Vonto':'-+-+-++', 'Adijady Vody':'-+--+++',
+  'Adalo Vava':'------+', 'Adalo Vody':'+-+----',
+  'Alohotsy Vava':'-+--+--', 'Alohotsy Vody':'-+--+--'
+};
+
+// Ordre chaldeen ; c : f = faste, n = vigilance, x = neutre
+var PLANETES = [
+  {fr: 'Saturne', mg: 'Zohaly', c: 'n'}, {fr: 'Jupiter', mg: 'Mosatary', c: 'f'},
+  {fr: 'Mars', mg: 'Mareky', c: 'n'}, {fr: 'Soleil', mg: 'Samosa', c: 'f'},
+  {fr: 'V&eacute;nus', mg: 'Zohora', c: 'f'}, {fr: 'Mercure', mg: 'Atoridy', c: 'x'},
+  {fr: 'Lune', mg: 'Kamary', c: 'x'}
+];
+// Planete du jour (getDay 0 = dimanche) : index dans PLANETES
+var MAITRE_JOUR = [3, 6, 2, 5, 1, 4, 0];
+var QUARTS = ['Heure juste', 'Et quart (impulsion)', 'Et demie (&eacute;quilibre)', 'Moins le quart (d&eacute;crue)'];
+var MIN_MODE = 'fixe';
+
+// Lever et coucher du Soleil (equation du lever, precision ~1 min), instants en ms UTC
+function soleil(y, m, d, lat, lon) {
+  var r = Math.PI / 180;
+  var jd0 = Date.UTC(y, m, d) / 86400000 + 2440587.5;
+  var n = Math.ceil(jd0 - 2451545.0 + 0.0008);
+  var js = n - lon / 360;
+  var M = (357.5291 + 0.98560028 * js) % 360;
+  var C = 1.9148 * Math.sin(M * r) + 0.02 * Math.sin(2 * M * r) + 0.0003 * Math.sin(3 * M * r);
+  var L = (M + C + 180 + 102.9372) % 360;
+  var jt = 2451545.0 + js + 0.0053 * Math.sin(M * r) - 0.0069 * Math.sin(2 * L * r);
+  var sd = Math.sin(L * r) * Math.sin(23.4397 * r);
+  var cd = Math.cos(Math.asin(sd));
+  var cw = (Math.sin(-0.833 * r) - Math.sin(lat * r) * sd) / (Math.cos(lat * r) * cd);
+  var w = Math.acos(Math.max(-1, Math.min(1, cw))) / r;
+  return {
+    lever: (jt - w / 360 - 2440587.5) * 86400000,
+    coucher: (jt + w / 360 - 2440587.5) * 86400000
+  };
+}
+
+// 24 heures inegales du jour civil (y, m, d) : du lever au lever suivant
+// Heures de jour puis de nuit : vintana Alahamady -> Alohotsy ; planetes dans l'ordre chaldeen
+function heuresDuJour(y, m, d) {
+  var li = pfLieu();
+  var s1 = soleil(y, m, d, li.lat, li.lon);
+  var s2 = soleil(y, m, d + 1, li.lat, li.lon);
+  var dj = (s1.coucher - s1.lever) / 12, dn = (s2.lever - s1.coucher) / 12;
+  var p0 = MAITRE_JOUR[new Date(y, m, d).getDay()];
+  var h = [];
+  for (var i = 0; i < 24; i++) {
+    var deb = (i < 12) ? s1.lever + i * dj : s1.coucher + (i - 12) * dn;
+    h.push({deb: deb, fin: deb + ((i < 12) ? dj : dn), nuit: i >= 12, v: i % 12, p: (p0 + i) % 7});
+  }
+  return h;
+}
+
+function hhmm(ms) {
+  var t = new Date(ms + EAT);
+  return pad2(t.getUTCHours()) + ':' + pad2(t.getUTCMinutes());
+}
+
+// Relation d'un vintana horaire avec le vintana natal du jour
+function relHeure(natal, v) {
+  if (natal === v) return {nom: 'M&ecirc;me vintana', t: 'r&eacute;sonance directe', c: 'x'};
+  return pfRel(natal, v, false);
+}
+
+// Heure, quart et minute vintana pour l'instant t (ms UTC)
+function instantVintana(t) {
+  var e = new Date(t + EAT);
+  var y = e.getUTCFullYear(), m = e.getUTCMonth(), d = e.getUTCDate();
+  var h = heuresDuJour(y, m, d);
+  if (t < h[0].deb) h = heuresDuJour(y, m, d - 1);
+  for (var i = 0; i < 24; i++) {
+    if (t >= h[i].deb && t < h[i].fin) {
+      var f = (t - h[i].deb) / (h[i].fin - h[i].deb);
+      var sect = Math.floor(f * 12);
+      var vm = (MIN_MODE === 'fixe') ? sect : (h[i].v + sect) % 12;
+      return {h: h[i], quart: Math.floor(f * 4), vMin: vm};
+    }
+  }
+  return null;
+}
+
+function setMinMode(mode) {
+  MIN_MODE = mode;
+  try { localStorage.setItem('alimanaka_minutes', mode); } catch (e) {}
+  renderHorloge();
+}
+
+// Panneau gauche : horloge en direct (heure de Madagascar)
+function renderHorloge() {
+  var now = new Date().getTime();
+  var x = instantVintana(now);
+  if (!x) { el('hzBody').innerHTML = ''; return; }
+  var vh = VO[x.h.v].nom, vm = VO[x.vMin].nom, pl = PLANETES[x.h.p];
+  var html = '<div class="hz-t">' + hhmm(now) + '</div>' +
+    '<div class="pl-row"><span class="pl-k">Vintana de l\'heure</span><span>' + vh + '</span></div>' +
+    '<div class="pl-row"><span class="pl-k">Quart</span><span>' + QUARTS[x.quart] + '</span></div>' +
+    '<div class="pl-row"><span class="pl-k">Vintana de la minute</span><span>' + vm + '</span></div>' +
+    '<div class="pl-row"><span class="pl-k">Plan&egrave;te de l\'heure</span><span class="pl-' + pl.c + '">' + pl.fr + ' (' + pl.mg + ')</span></div>';
+  if (PF_ACTIF >= 0) {
+    var rh = relHeure(pfNatal(PROFILS[PF_ACTIF]).jour, vh);
+    html += '<div class="pl-row"><span class="pl-k">Heure &harr; vintana natal</span><span class="pl-' + rh.c + '">' + rh.nom + '</span></div>';
+  }
+  if ((x.vMin - x.h.v + 12) % 12 === 6) {
+    html += '<div class="pl-note pl-n">&#9888; Heure et minute en opposition (Mifandratra) : prudence.</div>';
+  }
+  el('hzBody').innerHTML = html;
+  toggleClass(el('btnFixe'), 'active-niv', MIN_MODE === 'fixe');
+  toggleClass(el('btnMobile'), 'active-niv', MIN_MODE === 'mobile');
+}
+
+// Fiche : tableau des 24 heures du jour choisi
+function buildHeures(date) {
+  var y = date.getFullYear(), m = date.getMonth(), d = date.getDate();
+  var h = heuresDuJour(y, m, d);
+  var natal = (PF_ACTIF >= 0) ? pfNatal(PROFILS[PF_ACTIF]).jour : null;
+  var now = new Date().getTime();
+  var rows = '';
+  for (var i = 0; i < 24; i++) {
+    var pl = PLANETES[h[i].p], v = VO[h[i].v].nom;
+    var rel = natal ? relHeure(natal, v) : {nom: '', c: 'x'};
+    var cur = (now >= h[i].deb && now < h[i].fin) ? ' active' : '';
+    if (i === 12) rows += '<div class="cal-sep">Coucher du soleil &bull; ' + hhmm(h[i].deb) + '</div>';
+    rows += '<div class="hr-row' + (h[i].nuit ? ' nuit' : '') + cur + '">' +
+      '<span class="hr-h">' + hhmm(h[i].deb) + '</span>' +
+      '<span>' + v + '</span>' +
+      '<span class="pl-' + rel.c + '">' + rel.nom + '</span>' +
+      '<span class="pl-' + pl.c + '">' + pl.fr + '</span></div>';
+  }
+  return '<div class="apanel anim">' +
+    '<div class="ptitle">Heures du jour &middot; ' + pfLieu().nom + ' (UTC+3)</div>' +
+    '<div class="cal-sep">Lever du soleil &bull; ' + hhmm(h[0].deb) + '</div>' + rows +
+    '<div class="cal-legend"><span class="pl-f">Plan&egrave;te faste</span><span class="pl-n">Plan&egrave;te de vigilance</span><span class="pl-x">Neutre</span></div>' +
+    '</div>';
+}
+
+// Meilleurs jours sur 30 jours pour le profil actif
+// Score : nature du jour (+1/-1), axes personnels (+1 favorable, -2 Mandratra),
+// Andro manindry (-2), Volana maty (jours 29-30 : -1)
+function meilleursJours() {
+  var val = el('dp').value;
+  if (!val) { alert('Veuillez choisir une date'); return; }
+  if (PF_ACTIF < 0) { pfOpen(); return; }
+  CAL_ON = false;
+  var p = val.split('-');
+  var n = pfNatal(PROFILS[PF_ACTIF]);
+  var jours = [];
+  for (var i = 0; i < 30; i++) {
+    var dt = new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10) + i);
+    if (dt > new Date(2050, 11, 14)) break;
+    var res = compute(dt);
+    var an = pfAnalyse(n, res, dt);
+    var cle = res.v.nom + ' ' + jourNom(res.v.j, res.v.total);
+    var g = (GRILLE[cle] || '-------').charAt(dt.getDay()) === '+' ? 1 : -1;
+    var score = g + an.nbF - 2 * an.nbN - (res.delta >= 28 ? 1 : 0);
+    var motifs = [g > 0 ? 'jour faste' : 'jour n&eacute;faste'];
+    for (var k = 0; k < 4; k++) { if (an.axes[k][1].c !== 'x') motifs.push(an.axes[k][1].nom); }
+    if (an.manindry) motifs.push('Andro manindry');
+    if (res.delta >= 28) motifs.push('Volana maty');
+    jours.push({d: dt, s: score, v: cle, m: motifs});
+  }
+  var tri = jours.slice().sort(function(a, b) { return b.s - a.s || a.d - b.d; });
+  function ligne(j) {
+    var iso = j.d.getFullYear() + '-' + pad2(j.d.getMonth() + 1) + '-' + pad2(j.d.getDate());
+    var c = j.s > 0 ? 'pl-f' : (j.s < 0 ? 'pl-n' : 'pl-x');
+    return '<div class="hr-row mj" onclick="calPick(\'' + iso + '\')">' +
+      '<span class="hr-h">' + JMG[j.d.getDay()].fr.substr(0, 3) + ' ' + pad2(j.d.getDate()) + '/' + pad2(j.d.getMonth() + 1) + '</span>' +
+      '<span>' + j.v + '</span><span class="' + c + '">' + (j.s > 0 ? '+' : '') + j.s + '</span>' +
+      '<span class="pl-k">' + j.m.join(', ') + '</span></div>';
+  }
+  var best = '', worst = '';
+  for (var b = 0; b < Math.min(7, tri.length); b++) best += ligne(tri[b]);
+  for (var w = tri.length - 1; w >= Math.max(0, tri.length - 5); w--) worst += ligne(tri[w]);
+  el('rp').innerHTML = '<div class="apanel anim">' +
+    '<div class="ptitle">Meilleurs jours &middot; ' + esc(PROFILS[PF_ACTIF].nom) + ' &middot; 30 jours</div>' + best +
+    '<div class="ptitle" style="margin-top:18px">Jours &agrave; &eacute;viter</div>' + worst +
+    '<div class="pl-note pl-k">Cliquez sur un jour pour ouvrir sa fiche.</div></div>';
+}
+
+// =======================================
+// VUE FADY & RITES (ES5)
+// =======================================
+
+var FT_LANGUE = 'fr';
+var FT_VINTANA = '';
+var FT_LIB = {
+  fr: {titre: 'Fady &amp; rites', vintana: 'Vintana', natal: 'vintana natal', fady: 'Fady',
+       remedes: 'Rem&egrave;des (faditra et offrande)', circ: 'Circoncision (vintana du jour)',
+       fond: 'Fondations et premier coup de b&ecirc;che', tomb: 'Tombeau (vintana du terrain)',
+       jours: 'Les sept jours', note: 'Fady et rem&egrave;des : vintana natal. Circoncision : vintana du jour. Tombeau : vintana du terrain.',
+       ok: 'Faste', non: 'Proscrit', cond: 'Sous conditions', maj: 'Mettre &agrave; jour les textes'},
+  mg: {titre: 'Fady sy fomba', vintana: 'Vintana', natal: 'vintana nahaterahana', fady: 'Fady',
+       remedes: 'Fanalana faditra sy fanarenana', circ: 'Famorana zaza (vintan&rsquo;ny andro)',
+       fond: 'Fandatsaham-bato', tomb: 'Fasana (vintan&rsquo;ny tany)',
+       jours: 'Ny andro fito', note: 'Fady sy fanafody : vintana nahaterahana. Famorana : vintan&rsquo;ny andro. Fasana : vintan&rsquo;ny tany.',
+       ok: 'Tsara', non: 'Fady', cond: 'Misy fepetra', maj: 'Havaozina ny lahatsoratra'}
+};
+
+function setFtLangue(l) {
+  FT_LANGUE = l;
+  try { localStorage.setItem('alimanaka_langue', l); } catch (e) {}
+  renderFadyRites();
+}
+
+function setFtVintana(v) {
+  FT_VINTANA = v;
+  renderFadyRites();
+}
+
+function showFadyRites() {
+  CAL_ON = false;
+  if (PF_ACTIF >= 0) FT_VINTANA = pfNatal(PROFILS[PF_ACTIF]).jour;
+  if (!FT_VINTANA) FT_VINTANA = VO[0].nom;
+  renderFadyRites();
+}
+
+function ftBadge(c, lib) {
+  var cls = (c === 'ok') ? 'bf' : (c === 'non' ? 'bn' : 'bx');
+  return '<span class="badge ' + cls + '">' + lib[c] + '</span>';
+}
+
+// Import du fichier de textes (garde sur l'appareil, dans localStorage)
+function ftImporter() {
+  el('ftFile').value = '';
+  el('ftFile').click();
+}
+
+function ftCharger(input) {
+  var f = input.files && input.files[0];
+  if (!f) return;
+  var lr = new FileReader();
+  lr.onload = function() {
+    var d = null;
+    try { d = JSON.parse(lr.result); } catch (e) {}
+    if (!d || d.format !== 'alimanaka-textes' || !d.fr || !d.mg || !d.circOk || !d.tombIcon) {
+      alert('Fichier non reconnu : choisissez le fichier alimanaka-textes.json.');
+      return;
+    }
+    FADY_RITES = d;
+    try { localStorage.setItem('alimanaka_textes', lr.result); }
+    catch (e) { alert('Textes chargés pour cette session, mais impossible de les garder sur cet appareil.'); }
+    showFadyRites();
+  };
+  lr.readAsText(f, 'utf-8');
+}
+
+function renderFadyRites() {
+  if (!FADY_RITES) {
+    el('rp').innerHTML = '<div class="apanel anim"><div class="ptitle">Fady &amp; rites</div>' +
+      '<div class="ft-p">Textes non import&eacute;s sur cet appareil.</div>' +
+      '<div class="ft-p">Choisissez le fichier <b>alimanaka-textes.json</b> que l\'on vous a transmis. ' +
+      'Il sera gard&eacute; sur cet appareil : l\'import ne se fait qu\'une fois.</div>' +
+      '<button class="btn-p" style="margin-top:8px" onclick="ftImporter()">Importer les textes</button></div>';
+    return;
+  }
+  var t = FADY_RITES[FT_LANGUE], lib = FT_LIB[FT_LANGUE], v = FT_VINTANA;
+  var natal = (PF_ACTIF >= 0) ? pfNatal(PROFILS[PF_ACTIF]).jour : '';
+  var opts = '';
+  for (var i = 0; i < VO.length; i++) {
+    var n = VO[i].nom;
+    opts += '<option value="' + n + '"' + (n === v ? ' selected' : '') + '>' + n + (n === natal ? ' (' + lib.natal + ')' : '') + '</option>';
+  }
+  var html = '<div class="apanel anim">' +
+    '<div class="ptitle">' + lib.titre + '</div>' +
+    '<div class="ft-bar">' +
+      '<button class="nlvl-btn' + (FT_LANGUE === 'fr' ? ' active-niv' : '') + '" onclick="setFtLangue(\'fr\')">FR</button>' +
+      '<button class="nlvl-btn' + (FT_LANGUE === 'mg' ? ' active-niv' : '') + '" onclick="setFtLangue(\'mg\')">MG</button>' +
+      '<select class="pf-sel" onchange="setFtVintana(this.value)">' + opts + '</select>' +
+    '</div>' +
+    '<div class="pl-note pl-k" style="font-size:12px">' + lib.note + '</div>';
+
+  // Fady
+  html += '<div class="ft-sec"><div class="ft-h">' + lib.fady + ' &middot; ' + v + '</div>';
+  for (var f = 0; f < t.fady[v].length; f++) html += '<div class="ft-li"><span>&bull;</span><div>' + t.fady[v][f] + '</div></div>';
+  html += '</div>';
+
+  // Remedes
+  html += '<div class="ft-sec"><div class="ft-h">' + lib.remedes + ' &middot; ' + v + '</div><div class="ft-box">';
+  for (var r = 0; r < t.remedes[v].length; r++) html += '<div><b>' + t.remedes[v][r][0] + ' :</b> ' + t.remedes[v][r][1] + '</div>';
+  html += '</div>' + t.remedesIntro + '</div>';
+
+  // Circoncision
+  var cOk = (FADY_RITES.circOk.indexOf(v) >= 0) ? 'ok' : 'non';
+  html += '<div class="ft-sec"><div class="ft-h">' + lib.circ + '</div>' +
+    '<div class="ft-box">' + ftBadge(cOk, lib) + ' <b>' + v + '</b> : ' + t.circ[v] + '</div>' + t.circRegles + '</div>';
+
+  // Fondations
+  html += '<div class="ft-sec"><div class="ft-h">' + lib.fond + '</div>' + t.fond + '</div>';
+
+  // Tombeau
+  html += '<div class="ft-sec"><div class="ft-h">' + lib.tomb + '</div>' +
+    '<div class="ft-box">' + ftBadge(FADY_RITES.tombIcon[v], lib) + ' ' + t.tomb[v] + '</div>' + t.tombRegles + '</div>';
+
+  // Sept jours
+  html += '<div class="ft-sec"><div class="ft-h">' + lib.jours + '</div>' + t.jours + '</div>';
+
+  html += '<div class="ft-sec"><button class="btn-s" onclick="ftImporter()">' + lib.maj + '</button></div>';
+  el('rp').innerHTML = html + '</div>';
+}
+
+
 setToday();
+try { if (localStorage.getItem('alimanaka_minutes') === 'mobile') MIN_MODE = 'mobile'; } catch (e) {}
+try { if (localStorage.getItem('alimanaka_langue') === 'mg') FT_LANGUE = 'mg'; } catch (e) {}
+try { var ftSauve = localStorage.getItem('alimanaka_textes'); if (ftSauve) FADY_RITES = JSON.parse(ftSauve); } catch (e) { FADY_RITES = null; }
 pfInit();
+renderHorloge();
+setInterval(renderHorloge, 20000);
 
 </script>
 

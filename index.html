@@ -112,6 +112,8 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.5em;}
 .pf-lbl{font-size:14px;font-weight:700;color:var(--ink2);margin-bottom:6px;}
 .pf-err{color:var(--hibi-d);font-size:14px;min-height:20px;margin-bottom:6px;}
 .pf-box .btn-s{margin-top:8px;}
+.pf-act{display:flex;gap:6px;white-space:nowrap;}
+.pf-suppr{display:block;width:100%;margin-top:8px;color:var(--hibi-d);}
 
 /* Fiche du jour : l'element fort de la page */
 .vcard{position:relative;background:var(--lagoon-t);border-radius:28px;padding:34px 28px 28px;overflow:hidden;}
@@ -273,6 +275,9 @@ footer .proverbe{font-family:var(--display);font-size:17px;color:var(--ink);marg
   .ctrl #pfSel{grid-column:1;grid-row:1;margin:0;}
   .ctrl .pf-head{grid-column:2;grid-row:1;margin:0;}
   .ctrl .date-row{grid-column:1/-1;grid-row:2;}
+  .pf-long{display:none;}
+  /* Calendrier : le choix du mois et de l'annee reste visible en haut pendant le defilement */
+  .cal-head{position:sticky;top:env(safe-area-inset-top);z-index:5;background:var(--card);margin:-18px -14px 8px;padding:12px 14px 8px;border-radius:22px 22px 0 0;border-bottom:1px solid var(--line);}
   body[data-vue]:not([data-vue="tabJour"]) .extra{display:none;}
   .tabs{position:fixed;left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));bottom:calc(8px + env(safe-area-inset-bottom));z-index:20;border-radius:22px;padding:6px;box-shadow:0 10px 30px rgba(29,43,83,.22);}
   .tab{flex-direction:column;gap:2px;min-height:56px;padding:4px 1px;border-radius:14px;font-size:11px;line-height:1.15;text-align:center;}
@@ -321,7 +326,10 @@ try { var thSauve = localStorage.getItem('alimanaka_theme'); if (thSauve) docume
     <section class="panel">
       <div class="pf-head">
         <label class="ptitle" for="pfSel">Profil</label>
-        <button class="lnk" onclick="pfOpen()">+ Nouveau profil</button>
+        <span class="pf-act">
+          <button class="lnk" onclick="pfOpen(PF_ACTIF)">Modifier</button>
+          <button class="lnk" onclick="pfOpen()">+ Nouveau<span class="pf-long"> profil</span></button>
+        </span>
       </div>
       <select class="pf-sel" id="pfSel" onchange="pfLoad(parseInt(this.value,10))"></select>
       <div class="pf-info" id="pfInfo"></div>
@@ -432,6 +440,7 @@ try { var thSauve = localStorage.getItem('alimanaka_theme'); if (thSauve) docume
     <div class="pf-err" id="pfErr"></div>
     <button class="btn-p" onclick="pfSave()">Enregistrer le profil</button>
     <button class="btn-s" id="pfCancel" onclick="pfClose()">Annuler</button>
+    <button class="lnk pf-suppr" id="pfSuppr" onclick="pfSuppr()">Supprimer ce profil</button>
   </div>
 </div>
 <script>
@@ -6439,6 +6448,9 @@ function showCalendar() {
   CAL_ON = true;
   setNav('tabCal');
   renderCalendar();
+  // A l'ouverture, la ligne de la date choisie est amenee au centre de l'ecran
+  var a = document.querySelector('.cal-row.active');
+  if (a) window.scrollTo(0, window.pageYOffset + a.getBoundingClientRect().top - window.innerHeight / 2 + a.offsetHeight / 2);
 }
 
 function calMove(n) {
@@ -6720,12 +6732,19 @@ function pfLoad(i) {
   refreshVue(false);
 }
 
-function pfOpen() {
-  el('pfNom').value = '';
-  el('pfNaiss').value = '';
+// Fenetre profil : nouveau (sans argument) ou modification du profil n
+var PF_EDIT = -1;
+function pfOpen(n) {
+  PF_EDIT = (n >= 0 && n < PROFILS.length) ? n : -1;
+  var pf = PF_EDIT >= 0 ? PROFILS[PF_EDIT] : null;
+  el('pfTitre').innerHTML = pf ? 'Modifier le profil' : 'Nouveau profil';
+  el('pfNom').value = pf ? pf.nom : '';
+  el('pfNaiss').value = pf ? pf.naissance : '';
   var opts = '';
   for (var i = 0; i < LIEUX.length; i++) opts += '<option value="' + i + '">' + LIEUX[i].nom + '</option>';
   el('pfLieu').innerHTML = opts;
+  el('pfLieu').value = pf ? String(pf.lieu || 0) : '0';
+  el('pfSuppr').style.display = pf ? 'block' : 'none';
   el('pfErr').innerHTML = '';
   el('pfCancel').style.display = PROFILS.length ? 'block' : 'none';
   el('pfModal').style.display = 'flex';
@@ -6743,9 +6762,20 @@ function pfSave() {
   if (!naiss || naiss < '1600-01-16' || naiss > '2050-12-14') {
     el('pfErr').innerHTML = 'Date de naissance entre 1600 et 2050.'; return;
   }
-  PROFILS.push({nom: nom, naissance: naiss, lieu: parseInt(el('pfLieu').value, 10) || 0});
+  var pf = {nom: nom, naissance: naiss, lieu: parseInt(el('pfLieu').value, 10) || 0};
   el('pfModal').style.display = 'none';
+  if (PF_EDIT >= 0) { PROFILS[PF_EDIT] = pf; pfLoad(PF_EDIT); return; }
+  PROFILS.push(pf);
   pfLoad(PROFILS.length - 1);
+}
+
+function pfSuppr() {
+  if (PF_EDIT < 0 || !confirm('Supprimer le profil « ' + PROFILS[PF_EDIT].nom + ' » ?')) return;
+  PROFILS.splice(PF_EDIT, 1);
+  CP_A = CP_B = -1;
+  el('pfModal').style.display = 'none';
+  if (!PROFILS.length) { PF_ACTIF = -1; pfStore(); pfRender(); pfOpen(); return; }
+  pfLoad(PF_ACTIF > PF_EDIT ? PF_ACTIF - 1 : Math.min(PF_ACTIF, PROFILS.length - 1));
 }
 
 function pfInit() {

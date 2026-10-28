@@ -212,7 +212,23 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.5em;}
 .pl-note{margin-top:10px;font-size:15px;line-height:1.6;padding:10px 12px;border-radius:12px;background:var(--card2);}
 .pl-note.pl-f{background:var(--leaf-t);}.pl-note.pl-n{background:var(--hibi-t);}.pl-note.pl-x{background:var(--blue-t);}
 .pl-note.pl-k{background:none;padding:0;font-weight:400;}
-.hz-t{font-family:var(--display);font-size:44px;line-height:1;color:var(--ink);text-align:center;margin:2px 0 10px;font-variant-numeric:tabular-nums;}
+/* Horloge des vintana en carre : la maison orientee, Alahamady au nord-est */
+.hz-wrap{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start;justify-content:center;}
+.hz-svg{flex:1 1 340px;width:100%;min-width:280px;max-width:420px;}
+.hz-side{flex:1 1 240px;min-width:0;}
+.hz-row{padding:9px 0;border-bottom:1px solid var(--line);}
+.hz-k{font-size:14px;color:var(--ink2);}
+.hz-v{font-family:var(--display);font-size:22px;line-height:1.25;color:var(--ink);}
+.hz-pl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.hz-chip{display:inline-block;margin-left:6px;padding:2px 10px;border-radius:999px;font-size:13px;font-weight:700;vertical-align:3px;}
+.hz-pl .hz-chip{margin-left:0;}
+.hz-chip.f{background:var(--leaf-t);color:var(--leaf-d);}.hz-chip.n{background:var(--hibi-t);color:var(--hibi-d);}.hz-chip.x{background:var(--blue-t);color:var(--blue);}
+.hz-n{font-family:var(--display);font-size:13.5px;fill:var(--ink);}
+.hz-c{font-size:11px;fill:var(--ink2);}
+.hz-cel{cursor:pointer;}
+.hz-cel:focus{outline:none;}
+.hz-cel:focus-visible rect{stroke:var(--lagoon);stroke-width:2.5;}
+.hz-info{font-size:14px;line-height:1.55;color:var(--ink2);}
 .hr-row{display:grid;grid-template-columns:56px 1fr 1fr 80px;gap:8px;align-items:center;padding:9px 8px;border-radius:10px;font-size:15px;}
 .hr-row.nuit{background:#EEF0F8;}
 .hr-row.active{background:var(--sun-t);box-shadow:inset 0 0 0 2px var(--sun);}
@@ -376,14 +392,6 @@ try { var thSauve = localStorage.getItem('alimanaka_theme'); if (thSauve) docume
   </main>
 
   <aside class="extra">
-    <section class="panel">
-      <div class="ptitle">Horloge des vintana</div>
-      <div id="hzBody"></div>
-      <div class="seg" style="grid-template-columns:1fr 1fr;margin-top:12px">
-        <button class="nlvl-btn" id="btnFixe" onclick="setMinMode('fixe')">Fixe</button>
-        <button class="nlvl-btn" id="btnMobile" onclick="setMinMode('mobile')">Mobile</button>
-      </div>
-    </section>
     <section class="panel">
       <div class="ptitle">D&eacute;but du mois</div>
       <div class="seg" style="grid-template-columns:1fr 1fr">
@@ -6373,7 +6381,9 @@ function calculate() {
     '</div>' +
     buildNaninanana(moon, delta) +
     actsHtml +
+    '<div class="apanel anim" id="hzPanel"></div>' +
     buildHeures(date);
+  hzBuild();
 }
 
 
@@ -6942,7 +6952,6 @@ var PLANETES = [
 ];
 // Planete du jour (getDay 0 = dimanche) : index dans PLANETES
 var MAITRE_JOUR = [3, 6, 2, 5, 1, 4, 0];
-var QUARTS = ['Heure juste', 'Et quart (impulsion)', 'Et demie (&eacute;quilibre)', 'Moins le quart (d&eacute;crue)'];
 var MIN_MODE = 'fixe';
 
 // Lever et coucher du Soleil (equation du lever, precision ~1 min), instants en ms UTC
@@ -6992,7 +7001,7 @@ function relHeure(natal, v) {
   return pfRel(natal, v, false);
 }
 
-// Heure, quart et minute vintana pour l'instant t (ms UTC)
+// Heure, secteur de minute et minute vintana pour l'instant t (ms UTC) ; hs : les 24 heures du cycle
 function instantVintana(t) {
   var e = new Date(t + EAT);
   var y = e.getUTCFullYear(), m = e.getUTCMonth(), d = e.getUTCDate();
@@ -7003,7 +7012,7 @@ function instantVintana(t) {
       var f = (t - h[i].deb) / (h[i].fin - h[i].deb);
       var sect = Math.floor(f * 12);
       var vm = (MIN_MODE === 'fixe') ? sect : (h[i].v + sect) % 12;
-      return {h: h[i], quart: Math.floor(f * 4), vMin: vm};
+      return {h: h[i], f: f, sect: sect, vMin: vm, hs: h};
     }
   }
   return null;
@@ -7015,33 +7024,214 @@ function setMinMode(mode) {
   renderHorloge();
 }
 
-// Panneau gauche : horloge en direct (heure de Madagascar)
+// Horloge des vintana en carre (onglet Jour), heure de Madagascar.
+// Les 12 vintana font le tour d'une grille 4 x 4 : la maison orientee, Alahamady au coin nord-est.
+// Case [ligne, colonne] de chaque vintana, dans l'ordre de VO
+var HZ_RC = [[0,3],[1,3],[2,3],[3,3],[3,2],[3,1],[3,0],[2,0],[1,0],[0,0],[0,1],[0,2]];
+// Couleurs selon la relation au natal : [case de l'heure, case de la minute, trait du jour] ; o = sans profil
+var HZ_COL = {f: ['#8FD19C', '#DDF2E1', '#3FA55A'], n: ['#F29A90', '#FCE1DE', '#E0493C'],
+              x: ['#A6C1F2', '#E1EAFB', '#4A7BD8'], o: ['#FFD15C', '#FFF0C2', '#1D2B53']};
+var HZ_VERDICT = {f: 'Favorable', n: 'Vigilance', x: 'Neutre'};
+var HZ_O = 25, HZ_S = 88, HZ_G = 6, HZ_INK = '#1D2B53';
+var HZ_CLE = '', HZ_RAF = false, HZ_INFO = -1, HZ_CASES = [], HZ_ICO = [], HZ_PISTE = [];
+
+function hzMk(tag, at, par) {
+  var e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (var k in at) e.setAttribute(k, at[k]);
+  par.appendChild(e);
+  return e;
+}
+function hzX(k) { return HZ_O + HZ_RC[k][1] * (HZ_S + HZ_G); }
+function hzY(k) { return HZ_O + HZ_RC[k][0] * (HZ_S + HZ_G); }
+
+// Point du carre [a, b] a la fraction s du tour (0 = coin nord-est, sens horaire)
+function hzPt(a, b, s) {
+  var L = b - a, q = (((s % 1) + 1) % 1) * 4;
+  if (q < 1) return [b, a + q * L];
+  if (q < 2) return [b - (q - 1) * L, b];
+  if (q < 3) return [a, b - (q - 2) * L];
+  return [a + (q - 3) * L, a];
+}
+// Trace de la piste des minutes entre les fractions s1 et s2, coins compris
+function hzSeg(s1, s2) {
+  var p = [hzPt(133, 287, s1)], c = Math.ceil(s1 * 4 + 1e-9) / 4;
+  while (c < s2 - 1e-9) { p.push(hzPt(133, 287, c)); c += 0.25; }
+  p.push(hzPt(133, 287, s2));
+  return 'M' + p.join('L');
+}
+
+// Icone de la planete p (index de PLANETES), dessinee autour de (0, 0)
+function hzIcone(p, par) {
+  var r, a;
+  if (p === 3) {
+    for (r = 0; r < 8; r++) {
+      a = r * Math.PI / 4;
+      hzMk('line', {x1: Math.cos(a) * 9.5, y1: Math.sin(a) * 9.5, x2: Math.cos(a) * 14, y2: Math.sin(a) * 14, stroke: '#E8A500', 'stroke-width': 2.2, 'stroke-linecap': 'round'}, par);
+    }
+    hzMk('circle', {r: 7, fill: '#FFC93C', stroke: HZ_INK, 'stroke-width': 1.1}, par);
+  } else if (p === 6) {
+    hzMk('path', {d: 'M1.32 -10.92A11 11 0 1 0 9.97 4.65A9 9 0 0 1 1.32 -10.92Z', fill: '#FFD15C', stroke: HZ_INK, 'stroke-width': 1.1, 'stroke-linejoin': 'round'}, par);
+    hzMk('circle', {cx: -7, cy: 2.5, r: 1.7, fill: '#E8B83A'}, par);
+    hzMk('circle', {cx: -5, cy: -5, r: 1.1, fill: '#E8B83A'}, par);
+    hzMk('circle', {cx: -3, cy: 7.5, r: 1.2, fill: '#E8B83A'}, par);
+  } else if (p === 2) {
+    hzMk('path', {d: 'M5 -5L12 -12M13 -13h-6M13 -13v6', stroke: HZ_INK, 'stroke-width': 1.8, 'stroke-linecap': 'round', fill: 'none'}, par);
+    hzMk('circle', {cx: -1, cy: 1, r: 9.5, fill: '#F2785C', stroke: HZ_INK, 'stroke-width': 1.1}, par);
+    hzMk('circle', {cx: -4, cy: -2, r: 2, fill: '#D9573D'}, par);
+    hzMk('circle', {cx: 2.5, cy: 4, r: 2.6, fill: '#D9573D'}, par);
+    hzMk('circle', {cx: -3, cy: 6, r: 1.2, fill: '#D9573D'}, par);
+  } else if (p === 5) {
+    hzMk('path', {d: 'M-6.5 -12.5A6.5 6.5 0 0 0 6.5 -12.5', fill: 'none', stroke: '#E8A500', 'stroke-width': 2.4, 'stroke-linecap': 'round'}, par);
+    hzMk('circle', {cy: -2, r: 6.5, fill: '#6CC6BC', stroke: HZ_INK, 'stroke-width': 1.1}, par);
+    hzMk('path', {d: 'M0 4.5V13M-4 9H4', fill: 'none', stroke: HZ_INK, 'stroke-width': 1.9, 'stroke-linecap': 'round'}, par);
+  } else if (p === 1) {
+    hzMk('circle', {r: 11.5, fill: '#F6C48A'}, par);
+    hzMk('path', {d: 'M-10.6 -4.5H10.6M-11 2H11', stroke: '#D9894A', 'stroke-width': 2.4}, par);
+    hzMk('path', {d: 'M-8 8.2H8', stroke: '#D9894A', 'stroke-width': 1.6}, par);
+    hzMk('ellipse', {cx: 4, cy: 5.2, rx: 2.8, ry: 1.7, fill: '#E0603C'}, par);
+    hzMk('circle', {r: 11.5, fill: 'none', stroke: HZ_INK, 'stroke-width': 1.1}, par);
+  } else if (p === 4) {
+    hzMk('path', {d: 'M0 6V13.5M-4 10H4', fill: 'none', stroke: HZ_INK, 'stroke-width': 1.9, 'stroke-linecap': 'round'}, par);
+    hzMk('circle', {cy: -2.5, r: 8.5, fill: '#F7A6C4', stroke: HZ_INK, 'stroke-width': 1.1}, par);
+    hzMk('path', {d: 'M-4.5 -5.5a5 5 0 0 1 4 -3', fill: 'none', stroke: '#FFFFFF', 'stroke-width': 1.6, 'stroke-linecap': 'round'}, par);
+  } else {
+    hzMk('ellipse', {rx: 15.5, ry: 4.6, fill: 'none', stroke: '#C98A2E', 'stroke-width': 2.4, transform: 'rotate(-18)'}, par);
+    hzMk('circle', {r: 8.2, fill: '#FFD98A', stroke: HZ_INK, 'stroke-width': 1.1}, par);
+    hzMk('path', {d: 'M-6 -3.5H6M-7.5 1H7.5', stroke: '#E3B054', 'stroke-width': 1.4}, par);
+    hzMk('path', {d: 'M-15.5 0A15.5 4.6 0 0 0 15.5 0', fill: 'none', stroke: '#C98A2E', 'stroke-width': 2.4, transform: 'rotate(-18)'}, par);
+  }
+}
+
+// Relation d'un vintana (index) au vintana natal du profil actif ; c = 'o' sans profil
+function hzRel(k) {
+  if (PF_ACTIF < 0) return {nom: '', c: 'o'};
+  return relHeure(pfNatal(PROFILS[PF_ACTIF]).jour, VO[k].nom);
+}
+function hzChip(r) {
+  return r.c === 'o' ? '' : '<span class="hz-chip ' + r.c + '">' + r.nom + '</span>';
+}
+
+// Construit le panneau de l'horloge dans la fiche du jour
+function hzBuild() {
+  var p = el('hzPanel');
+  if (!p) return;
+  p.innerHTML = '<div class="ptitle">Horloge des vintana</div>' +
+    '<div class="hz-wrap"><svg class="hz-svg" id="hzW" viewBox="0 0 420 420" role="img" aria-label="Horloge des vintana"></svg>' +
+    '<div class="hz-side" id="hzSide"></div></div>';
+  var w = el('hzW'), i, g, t;
+  var card = [['Avaratra', 210, 12, 0], ['Atsimo', 210, 416, 0], ['Atsinanana', 414, 210, 90], ['Andrefana', 6, 210, -90]];
+  for (i = 0; i < 4; i++) {
+    t = hzMk('text', {x: card[i][1], y: card[i][2], 'text-anchor': 'middle', 'class': 'hz-c',
+      transform: card[i][3] ? 'rotate(' + card[i][3] + ' ' + card[i][1] + ' ' + card[i][2] + ')' : ''}, w);
+    t.textContent = card[i][0];
+  }
+  HZ_CASES = []; HZ_ICO = []; HZ_PISTE = [];
+  for (i = 0; i < 12; i++) {
+    g = hzMk('g', {'class': 'hz-cel', tabindex: 0, role: 'button', 'aria-label': VO[i].nom}, w);
+    HZ_CASES.push(hzMk('rect', {x: hzX(i), y: hzY(i), width: HZ_S, height: HZ_S, rx: 14, fill: '#FFF8E1', stroke: HZ_INK, 'stroke-width': 0.9}, g));
+    t = hzMk('text', {x: hzX(i) + HZ_S / 2, y: hzY(i) + HZ_S / 2 + 7, 'text-anchor': 'middle', 'class': 'hz-n'}, g);
+    t.textContent = VO[i].nom;
+    HZ_ICO.push(hzMk('g', {transform: 'translate(' + (hzX(i) + HZ_S / 2) + ' ' + (hzY(i) + 24) + ')'}, g));
+    g.setAttribute('onclick', 'hzInfo(' + i + ')');
+    g.setAttribute('onkeydown', "if(event.key==='Enter'||event.key===' '){event.preventDefault();hzInfo(" + i + ');}');
+  }
+  hzMk('path', {id: 'hzJour', d: '', fill: 'none', 'stroke-width': 6, 'stroke-linecap': 'round'}, w);
+  for (i = 0; i < 12; i++) {
+    HZ_PISTE.push(hzMk('path', {d: hzSeg((i - 0.5) / 12 + 0.004, (i + 0.5) / 12 - 0.004), stroke: '#FFFFFF', 'stroke-width': 12, fill: 'none'}, w));
+  }
+  hzMk('path', {id: 'hzMin', d: '', stroke: '#2A8C82', 'stroke-width': 12, fill: 'none'}, w);
+  hzMk('rect', {id: 'hzCtr', x: 147, y: 147, width: 126, height: 126, rx: 18, fill: '#FFFFFF', stroke: HZ_INK, 'stroke-width': 0.8}, w);
+  hzMk('text', {id: 'hzT', x: 210, y: 225, 'text-anchor': 'middle', 'font-size': 42, 'font-weight': 700, fill: HZ_INK, style: 'font-family:var(--sans)'}, w);
+  hzMk('circle', {id: 'hzSec', r: 4.5, fill: '#FC3D32', stroke: '#FFFFFF', 'stroke-width': 1.3, 'pointer-events': 'none'}, w);
+  HZ_CLE = '';
+  hzMaj();
+  if (!HZ_RAF) { HZ_RAF = true; requestAnimationFrame(hzBoucle); }
+}
+
+// Animation : piste des minutes et trotteuse ; s'arrete quand l'horloge n'est plus affichee
+function hzBoucle() {
+  if (!el('hzW')) { HZ_RAF = false; return; }
+  hzMaj();
+  requestAnimationFrame(hzBoucle);
+}
+
 function renderHorloge() {
+  HZ_CLE = '';
+  hzMaj();
+}
+
+// Met a jour l'horloge ; les textes et couleurs seulement quand l'heure, la minute ou le profil changent
+function hzMaj() {
+  if (!el('hzW')) return;
   var now = new Date().getTime();
   var x = instantVintana(now);
-  if (!x) { el('hzBody').innerHTML = ''; return; }
-  var vh = VO[x.h.v].nom, vm = VO[x.vMin].nom, pl = PLANETES[x.h.p];
-  var html = '<div class="hz-t">' + hhmm(now) + '</div>' +
-    '<div class="pl-row"><span class="pl-k">Vintana de l\'heure</span><span>' + vh + '</span></div>' +
-    '<div class="pl-row"><span class="pl-k">Quart</span><span>' + QUARTS[x.quart] + '</span></div>' +
-    '<div class="pl-row"><span class="pl-k">Vintana de la minute</span><span>' + vm + '</span></div>' +
-    '<div class="pl-row"><span class="pl-k">Plan&egrave;te de l\'heure</span><span class="pl-' + pl.c + '">' + pl.fr + ' (' + pl.mg + ')</span></div>';
-  if (PF_ACTIF >= 0) {
-    var rh = relHeure(pfNatal(PROFILS[PF_ACTIF]).jour, vh);
-    html += '<div class="pl-row"><span class="pl-k">Heure &harr; vintana natal</span><span class="pl-' + rh.c + '">' + rh.nom + '</span></div>';
+  if (!x) return;
+  var vh = x.h.v, vm = x.vMin, fm = x.f * 12 - x.sect, i;
+  var start = (vm - x.sect + 12) % 12;
+  var cle = vh + '-' + vm + '-' + x.h.p + '-' + PF_ACTIF + '-' + MIN_MODE + '-' + hhmm(now);
+  if (cle !== HZ_CLE) {
+    HZ_CLE = cle;
+    var rh = hzRel(vh), rm = hzRel(vm), pl = PLANETES[x.h.p];
+    var vj = findVOIndex(compute(new Date()).v.nom), rj = hzRel(vj);
+    for (i = 0; i < 12; i++) {
+      HZ_CASES[i].setAttribute('fill', i === vh ? HZ_COL[rh.c][0] : (i === vm ? HZ_COL[rm.c][1] : '#FFF8E1'));
+      while (HZ_ICO[i].firstChild) HZ_ICO[i].removeChild(HZ_ICO[i].firstChild);
+      if (i === vh) hzIcone(x.h.p, HZ_ICO[i]);
+      HZ_PISTE[i].setAttribute('stroke', (i - start + 12) % 12 < x.sect ? '#BFE3DE' : '#FFFFFF');
+    }
+    // Trait du vintana du jour, le long du bord exterieur de sa case
+    var x0 = hzX(vj), y0 = hzY(vj), rc = HZ_RC[vj], d = '';
+    if (rc[0] === 0) d += 'M' + (x0 + 8) + ' ' + (y0 - 7) + 'H' + (x0 + HZ_S - 8);
+    if (rc[0] === 3) d += 'M' + (x0 + 8) + ' ' + (y0 + HZ_S + 7) + 'H' + (x0 + HZ_S - 8);
+    if (rc[1] === 3) d += 'M' + (x0 + HZ_S + 7) + ' ' + (y0 + 8) + 'V' + (y0 + HZ_S - 8);
+    if (rc[1] === 0) d += 'M' + (x0 - 7) + ' ' + (y0 + 8) + 'V' + (y0 + HZ_S - 8);
+    el('hzJour').setAttribute('d', d);
+    el('hzJour').setAttribute('stroke', HZ_COL[rj.c][2]);
+    el('hzCtr').setAttribute('fill', x.h.nuit ? '#22305E' : '#FFFFFF');
+    el('hzT').setAttribute('fill', x.h.nuit ? '#FFEFC2' : HZ_INK);
+    el('hzT').textContent = hhmm(now);
+    var mn = Math.max(1, Math.round((x.h.fin - now) / 60000));
+    var html =
+      '<div class="hz-row"><div class="hz-k">Vintana du jour</div><span class="hz-v">' + VO[vj].nom + '</span>' + hzChip(rj) + '</div>' +
+      '<div class="hz-row"><div class="hz-k">Vintana de l\'heure</div><span class="hz-v">' + VO[vh].nom + '</span>' + hzChip(rh) + '</div>' +
+      '<div class="hz-row"><div class="hz-k">Vintana de la minute</div><span class="hz-v">' + VO[vm].nom + '</span>' + hzChip(rm) +
+        ((vm - vh + 12) % 12 === 6 ? '<div class="pl-note pl-n">&#9888; Heure et minute en opposition (Mifandratra) : prudence.</div>' : '') + '</div>' +
+      '<div class="hz-row"><div class="hz-k">Ensuite</div><b>' + VO[(vh + 1) % 12].nom + '</b> &agrave; ' + hhmm(x.h.fin) + ' (dans ' + mn + ' min)</div>' +
+      '<div class="hz-row"><div class="hz-k">Plan&egrave;te de l\'heure</div><div class="hz-pl"><svg viewBox="-17 -17 34 34" width="34" height="34" id="hzPlI" aria-hidden="true"></svg>' +
+        '<span class="hz-v">' + pl.fr + '</span><span class="hz-chip ' + pl.c + '">' + HZ_VERDICT[pl.c] + '</span></div><div class="hz-k">' + pl.mg + '</div></div>';
+    // Activites et vigilance du vintana de l'heure (textes importes)
+    var hx = ftTxt('heures'), vn = VO[vh].nom;
+    if (hx && hx[vn]) {
+      html += '<div class="pl-note pl-f"><b>' + (FT_LANGUE === 'mg' ? 'Zavatra azo atao' : 'Activit&eacute;s possibles') + ' :</b> ' + hx[vn].ok + '</div>' +
+        '<div class="pl-note pl-x"><b>' + (FT_LANGUE === 'mg' ? 'Tandremo' : 'Vigilance') + ' :</b> ' + hx[vn].vig + '</div>';
+    }
+    html += '<div class="hz-row hz-info" id="hzInfo">Touchez un vintana pour voir ses heures aujourd\'hui.</div>' +
+      '<div class="hz-k" style="margin-top:10px">Vintana des minutes</div>' +
+      '<div class="seg" style="grid-template-columns:1fr 1fr;margin-top:6px">' +
+        '<button class="nlvl-btn' + (MIN_MODE === 'fixe' ? ' active-niv' : '') + '" onclick="setMinMode(\'fixe\')">Fixe</button>' +
+        '<button class="nlvl-btn' + (MIN_MODE === 'mobile' ? ' active-niv' : '') + '" onclick="setMinMode(\'mobile\')">Mobile</button></div>';
+    el('hzSide').innerHTML = html;
+    hzIcone(x.h.p, el('hzPlI'));
+    if (HZ_INFO >= 0) hzInfo(HZ_INFO);
   }
-  if ((x.vMin - x.h.v + 12) % 12 === 6) {
-    html += '<div class="pl-note pl-n">&#9888; Heure et minute en opposition (Mifandratra) : prudence.</div>';
+  el('hzMin').setAttribute('d', hzSeg((vm - 0.5) / 12 + 0.004, (vm - 0.5) / 12 + 0.004 + Math.max(0.002, fm * (1 / 12 - 0.008))));
+  // Trotteuse : un tour par minute au milieu des cases, 5 secondes par vintana depuis Alahamady
+  var sp = hzPt(HZ_O + HZ_S / 2, 420 - HZ_O - HZ_S / 2, ((now + EAT) % 60000) / 60000);
+  el('hzSec').setAttribute('cx', sp[0]);
+  el('hzSec').setAttribute('cy', sp[1]);
+}
+
+// Heures du cycle en cours gouvernees par le vintana k
+function hzInfo(k) {
+  var x = instantVintana(new Date().getTime()), s = [];
+  if (!x) return;
+  HZ_INFO = k;
+  for (var i = 0; i < 24; i++) {
+    if (x.hs[i].v === k) s.push(hhmm(x.hs[i].deb) + (x.hs[i].nuit ? ' (nuit)' : ''));
   }
-  // Activites et vigilance du vintana de l'heure (textes importes)
-  var hx = ftTxt('heures');
-  if (hx && hx[vh]) {
-    html += '<div class="pl-note pl-f"><b>' + (FT_LANGUE === 'mg' ? 'Zavatra azo atao' : 'Activit&eacute;s possibles') + ' :</b> ' + hx[vh].ok + '</div>' +
-      '<div class="pl-note pl-x"><b>' + (FT_LANGUE === 'mg' ? 'Tandremo' : 'Vigilance') + ' :</b> ' + hx[vh].vig + '</div>';
-  }
-  el('hzBody').innerHTML = html;
-  toggleClass(el('btnFixe'), 'active-niv', MIN_MODE === 'fixe');
-  toggleClass(el('btnMobile'), 'active-niv', MIN_MODE === 'mobile');
+  var r = hzRel(k);
+  el('hzInfo').innerHTML = '<span class="hz-v" style="font-size:17px">' + VO[k].nom + '</span>' + hzChip(r) +
+    '<br>Gouverne aujourd\'hui les heures de ' + s.join(' et de ') + '.';
 }
 
 // Fiche : tableau des 24 heures du jour choisi

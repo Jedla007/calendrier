@@ -1,7 +1,7 @@
 // Service Worker — Alimanaka PWA
 // Permet le fonctionnement hors-ligne (offline)
 
-var CACHE_NAME = 'alimanaka-v7';
+var CACHE_NAME = 'alimanaka-v8';
 var ASSETS = [
   './index.html',
   './manifest.json',
@@ -40,6 +40,8 @@ self.addEventListener('activate', function(event) {
 
 // Fetch : répondre depuis le cache (offline first)
 self.addEventListener('fetch', function(event) {
+  // Tuiles de carte (Lieux sacrés) : réseau seul, jamais mises en cache
+  if (event.request.url.indexOf('arcgisonline.com') !== -1) return;
   event.respondWith(
     caches.match(event.request).then(function(cached) {
       if (cached) return cached;

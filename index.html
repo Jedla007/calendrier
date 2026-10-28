@@ -59,6 +59,8 @@ button,select,input{font-family:inherit;}
 header.top{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 14px;padding:26px 0 22px;}
 h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,5vw,48px);line-height:1;color:var(--ink);}
 .subtitle{color:var(--ink2);font-size:15px;}
+.maj-btn{margin-left:auto;align-self:center;min-height:36px;padding:6px 12px;background:none;border:1px solid var(--line);border-radius:999px;color:var(--ink2);font-size:13px;font-weight:600;cursor:pointer;}
+.maj-btn:hover{color:var(--ink);border-color:var(--ink2);}
 
 /* Mise en page : reglages a gauche, vue a droite ; sur telephone, onglets en bas */
 .layout{display:grid;grid-template-columns:320px minmax(0,1fr);grid-template-areas:"ctrl tabs" "ctrl main" "extra main";grid-template-rows:auto auto 1fr;gap:18px 28px;align-items:start;}
@@ -123,7 +125,8 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.5em;}
 .bn{background:var(--hibi);color:#fff;}
 .bx{background:var(--blue);color:#fff;}
 .vname{font-family:var(--display);font-weight:400;font-size:clamp(46px,8vw,84px);line-height:1.02;color:var(--ink);margin:2px 0 6px;overflow-wrap:anywhere;}
-.vsign{font-family:var(--display);font-size:clamp(20px,3.4vw,35px);line-height:1.15;color:var(--ink2);margin-bottom:16px;}
+.vsign{font-family:var(--display);font-size:clamp(20px,3.4vw,35px);line-height:1.15;color:var(--ink2);margin-bottom:6px;}
+.vplan{font-size:15px;color:var(--ink2);margin-bottom:16px;}
 .vjn{font-family:var(--sans);font-size:17px;font-weight:600;color:var(--lagoon-d);white-space:nowrap;}
 .dot{width:12px;height:12px;border-radius:50%;flex:none;}
 .vdesc{font-size:17px;line-height:1.65;color:var(--ink);max-width:62ch;}
@@ -216,6 +219,27 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.5em;}
 .hr-h{font-size:14px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;}
 
 /* Fady & rites */
+/* Lieux sacres : la carte isole les z-index de Leaflet pour rester sous la barre d'onglets */
+.lx-filtres{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+.lx-filtres .pf-sel{margin:0;}
+.lx-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:10px 0;}
+.lx-bar .btn-s{width:auto;}
+.lx-bar .seg{margin-left:auto;min-width:200px;}
+.lx-mien{display:flex;align-items:center;gap:8px;min-height:44px;font-size:15px;font-weight:600;cursor:pointer;}
+.lx-mien input{width:20px;height:20px;accent-color:var(--lagoon);}
+.lx-carte{position:relative;z-index:0;isolation:isolate;height:440px;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:var(--card2);}
+.lx-compte{font-size:14px;color:var(--ink2);margin:14px 0 6px;}
+.lx-item{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;min-height:44px;padding:9px 10px;background:none;border:0;border-bottom:1px solid var(--line);text-align:left;cursor:pointer;color:var(--ink);}
+.lx-item:hover{background:var(--card2);}
+.lx-item.mien{background:var(--sun-t);}
+.lx-n{font-size:15px;font-weight:600;}
+.lx-s{font-size:13px;color:var(--ink2);}
+.lx-pop{font-family:var(--sans);font-size:14px;line-height:1.5;color:var(--ink);}
+.lx-pt{font-family:var(--display);font-size:17px;margin-bottom:4px;}
+.lx-p{margin-bottom:4px;}
+.lx-st{color:var(--hibi-d);font-weight:600;}
+.lx-src{font-size:12px;color:var(--ink2);}
+.lx-it{display:inline-block;margin-top:4px;padding:6px 12px;border-radius:999px;background:var(--lagoon);color:#fff!important;font-weight:700;text-decoration:none;}
 .ft-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;}
 .ft-bar .nlvl-btn{flex:none;padding:8px 18px;}
 .ft-bar .pf-sel{width:auto;flex:1;min-width:160px;margin:0;}
@@ -237,11 +261,24 @@ footer .proverbe{font-family:var(--display);font-size:17px;color:var(--ink);marg
 
 @media(max-width:899px){
   .app{padding:0 max(16px,env(safe-area-inset-right)) calc(104px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));}
-  header.top{padding:18px 0 14px;}
+  header.top{padding:14px 0 12px;align-items:center;gap:4px 8px;}
+  h1{font-size:32px;}
+  .subtitle{display:none;}
+  .maj-btn{padding:6px 10px;}
   .pf-info{display:none;}
   .layout{grid-template-columns:minmax(0,1fr);grid-template-areas:"ctrl" "main" "extra";grid-template-rows:none;gap:16px;}
+  /* Telephone : profil et date en deux lignes sans titres ; panneaux du bas reserves a l'onglet Jour */
+  .ctrl .panel{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:12px;}
+  .ctrl .ptitle{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);}
+  .ctrl #pfSel{grid-column:1;grid-row:1;margin:0;}
+  .ctrl .pf-head{grid-column:2;grid-row:1;margin:0;}
+  .ctrl .date-row{grid-column:1/-1;grid-row:2;}
+  body[data-vue]:not([data-vue="tabJour"]) .extra{display:none;}
   .tabs{position:fixed;left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));bottom:calc(8px + env(safe-area-inset-bottom));z-index:20;border-radius:22px;padding:6px;box-shadow:0 10px 30px rgba(29,43,83,.22);}
-  .tab{flex-direction:column;gap:2px;min-height:56px;padding:4px 2px;border-radius:16px;font-size:12px;line-height:1.15;text-align:center;}
+  .tab{flex-direction:column;gap:2px;min-height:56px;padding:4px 1px;border-radius:14px;font-size:11px;line-height:1.15;text-align:center;}
+  .lx-filtres{grid-template-columns:minmax(0,1fr);}
+  .lx-bar .seg{margin-left:0;width:100%;}
+  .lx-carte{height:58vh;}
   .agrid{grid-template-columns:1fr;}
   .vcard{padding:30px 20px 22px;border-radius:24px;}
   .apanel,.cpanel,.nani-outer{padding:18px 14px;}
@@ -277,6 +314,7 @@ try { var thSauve = localStorage.getItem('alimanaka_theme'); if (thSauve) docume
   </div>
   <h1>Alimanaka</h1>
   <p class="subtitle">Calendrier des vintana malgaches, m&eacute;thode Isa Lava</p>
+  <button class="maj-btn" onclick="ftImporter()" title="Importer le fichier alimanaka-textes.json">Mettre &agrave; jour</button>
 </header>
 <div class="layout">
   <aside class="ctrl">
@@ -307,6 +345,14 @@ try { var thSauve = localStorage.getItem('alimanaka_theme'); if (thSauve) docume
     <button class="tab" id="tabBest" onclick="meilleursJours()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5-4.8-4.6 6.6-.9z"/></svg>
       Meilleurs jours
+    </button>
+    <button class="tab" id="tabCouple" onclick="showCouple()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.6-9.2A5.3 5.3 0 0 1 12 6.6a5.3 5.3 0 0 1 9.6 4.7c-2.1 4.6-9.6 9.2-9.6 9.2z"/></svg>
+      Couple
+    </button>
+    <button class="tab" id="tabLieux" onclick="showLieux()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+      Lieux sacr&eacute;s
     </button>
     <button class="tab" id="tabFady" onclick="showFadyRites()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10Z"/><path d="M2 21c0-3 1.9-5.4 5.2-6"/></svg>
@@ -408,6 +454,25 @@ var VO = [
   {nom:'Adalo',    d:2,f:true, e:'Rivotra',  p:'Avaratra'},
   {nom:'Alohotsy', d:2,f:false,e:'Rano',     p:'Avaratra'}
 ];
+
+// Nom propre des 28 Isa (Isa Lava, d'apres OANA)
+var ISA_NOM = {
+  'Alahamady Vava':'Asoronteny', 'Alahamady Vonto':'Aliboteny', 'Alahamady Vody':'Asoriza',
+  'Adaoro Vava':'Adabara', 'Adaoro Vody':'Alahaka', 'Adizaoza Vava':'Alihina', 'Adizaoza Vody':'Azira',
+  'Asorotany Vava':'Anasara', 'Asorotany Vonto':'Atarafa', 'Asorotany Vody':'Alizabaha',
+  'Alahasaty Vava':'Azobora', 'Alahasaty Vody':'Asarafa', 'Asombola Vava':'Alohova', 'Asombola Vody':'Asimaika',
+  'Adimizana Vava':'Alakaforo', 'Adimizana Vonto':'Azobana', 'Adimizana Vody':'Alikilily',
+  'Alakarabo Vava':'Alakarabo', 'Alakarabo Vody':'Asola', 'Alakaosy Vava':'Anaimo', 'Alakaosy Vody':'Alibalady',
+  'Adijady Vava':'Sadazobe', 'Adijady Vonto':'Sadabolangy', 'Adijady Vody':'Sadasody',
+  'Adalo Vava':'Sadalakabia', 'Adalo Vody':'Faroalimokadamo', 'Alohotsy Vava':'Faroalimokaro', 'Alohotsy Vody':'Batanalohotsy'
+};
+
+// Planete maitresse de chaque vintana (d'apres OANA)
+var PLANETE_V = {
+  'Alahamady':'Mars, Soleil', 'Adaoro':'V&eacute;nus', 'Adizaoza':'Mercure', 'Asorotany':'Lune',
+  'Alahasaty':'Soleil, Mars', 'Asombola':'Mercure', 'Adimizana':'V&eacute;nus', 'Alakarabo':'Mars',
+  'Alakaosy':'Jupiter', 'Adijady':'Saturne', 'Adalo':'Saturne, Jupiter', 'Alohotsy':'Jupiter'
+};
 
 var VI = {
   'Alahamady':{desc:'Vintana ambony indrindra. Andro fanjakana sy voninahitra. Tsara indrindra ny andro Alahamady.',ok:['Fanambadiana','Kabary','Varotra','Fanamboarana trano','Dia'],nok:['Tsy misy fady lehibe']},
@@ -6127,7 +6192,8 @@ document.addEventListener('click', function(e) {
 
 // Onglet actif (Jour, Calendrier, Meilleurs jours, Fady & rites)
 function setNav(id) {
-  var t = ['tabJour', 'tabCal', 'tabBest', 'tabFady'];
+  var t = ['tabJour', 'tabCal', 'tabBest', 'tabCouple', 'tabLieux', 'tabFady'];
+  document.body.setAttribute('data-vue', id);
   for (var i = 0; i < t.length; i++) {
     toggleClass(el(t[i]), 'on', t[i] === id);
     if (t[i] === id) el(t[i]).setAttribute('aria-current', 'page');
@@ -6143,6 +6209,8 @@ function refreshVue(nouvelleDate) {
   var v = on ? on.id : 'tabJour';
   if (v === 'tabCal') { if (nouvelleDate) showCalendar(); else renderCalendar(); }
   else if (v === 'tabBest') { if (!nouvelleDate) meilleursJours(); }
+  else if (v === 'tabCouple') { if (!nouvelleDate) showCouple(); }
+  else if (v === 'tabLieux') { if (!nouvelleDate) showLieux(); }
   else if (v === 'tabFady') { if (!nouvelleDate) showFadyRites(); }
   else calculate();
 }
@@ -6265,9 +6333,13 @@ function calculate() {
   el('pFill').style.width = Math.min(100, Math.round((delta/29)*100)) + '%';
   el('pLbl').innerHTML   = 'Andro ' + (delta+1) + " amin\'ny volana";
 
-  var fc = (v.f === true)  ? 'faste'  : (v.f === false) ? 'nefaste' : '';
-  var bc = (v.f === true)  ? 'bf'     : (v.f === false) ? 'bn'      : 'bx';
-  var bl = (v.f === true)  ? 'Faste'  : (v.f === false) ? 'N&eacute;faste' : 'Neutre';
+  // Nature generale du jour : Isa x jour de la semaine (grille OANA)
+  var faste = natureJour(res, date) > 0;
+  var fc = faste ? 'faste' : 'nefaste';
+  var bc = faste ? 'bf' : 'bn';
+  var bl = faste ? 'Faste' : 'N&eacute;faste';
+  var isa = ISA_NOM[v.nom + ' ' + jn] || '';
+  var maty = (delta >= 28) ? '<div class="pl-note pl-n">&#9888; Volana maty : fin de la lunaison (jour ' + (delta + 1) + '), peu propice aux nouveaux d&eacute;parts.</div>' : '';
   var okH  = makeActs(info.ok,  'aok', '&#10003;');
   var nkH  = makeActs(info.nok, 'ank', '&#10007;');
 
@@ -6283,9 +6355,11 @@ function calculate() {
         '<div class="vmeta">' + dateStr.charAt(0).toUpperCase() + dateStr.substr(1) + '<br>D&eacute;but du mois : ' + NIV_NOM[NIVEAU] + '</div>' +
         '<div class="badge ' + bc + '">' + bl + '</div>' +
       '</div>' +
-      '<div class="vname">' + v.nom + ' <span class="vjn">' + jn + '</span></div>' +
+      '<div class="vname">' + v.nom + ' <span class="vjn">' + jn + (isa ? ' &middot; ' + isa : '') + '</span></div>' +
       '<div class="vsign">' + moisNom + '</div>' +
+      '<div class="vplan">Plan&egrave;te ma&icirc;tresse : ' + PLANETE_V[v.nom] + '</div>' +
       '<div class="vdesc">' + info.desc + '</div>' +
+      maty +
       buildProfil(res, date) +
     '</div>' +
     buildNaninanana(moon, delta) +
@@ -6329,6 +6403,23 @@ function buildNaninanana(moon, delta) {
   html += '<div class="nani-box">';
   html += '<div class="nani-sub-title">Teraka</div>';
   html += '<div class="nani-content">' + (terakaHtml || '-') + '</div>';
+  html += '</div>';
+
+  // Sous-section 4 : Lapa du jour (29 cours lunaires, textes importes)
+  var lapa = ftTxt('lapa');
+  html += '<div class="nani-box">';
+  if (jourCycle > 29) {
+    html += '<div class="nani-sub-title">Lapa</div><div class="nani-content">Jour ' + jourCycle + ' : au-del&agrave; des 29 Lapa (Volana maty).</div>';
+  } else if (lapa) {
+    var fasteL = FADY_RITES.lapaFaste[jourCycle];
+    // Le nom malgache porte deja le numero (Lapa faha-N : ...), pas le nom francais
+    var titreL = (FT_LANGUE === 'mg' ? '' : 'Lapa ' + jourCycle + ' : ') + lapa[jourCycle][0];
+    html += '<div class="vhead" style="margin-bottom:6px"><div class="nani-sub-title" style="margin:0">' + titreL + '</div>' +
+      '<span class="badge ' + (fasteL ? 'bf' : 'bn') + '">' + (fasteL ? 'Faste' : 'N&eacute;faste') + '</span></div>';
+    html += '<div class="nani-content">' + lapa[jourCycle][1] + '</div>';
+  } else {
+    html += '<div class="nani-sub-title">Lapa faha-' + jourCycle + '</div>' + ftManque();
+  }
   html += '</div>';
 
   html += '</div>';
@@ -6516,7 +6607,7 @@ function renderCalendar() {
     }
     var v = res.v;
     var pz = phases[d];
-    var dc =(v.f === true) ? 'dot-f' : (v.f === false) ? 'dot-n' : 'dot-x';
+    var dc = natureJour(res, date) > 0 ? 'dot-f' : 'dot-n';
     if (natal) {
       var pp = pfPastille(natal, res, date);
       dc = 'pdbl dot-p' + pp.jour + ' ring-p' + pp.mois;
@@ -6556,8 +6647,7 @@ function renderCalendar() {
       rows +
       '<div class="cal-legend">' + (natal ? legende :
         '<span><span class="dot dot-f"></span>Faste</span>' +
-        '<span><span class="dot dot-n"></span>N&eacute;faste</span>' +
-        '<span><span class="dot dot-x"></span>Neutre</span>') +
+        '<span><span class="dot dot-n"></span>N&eacute;faste</span>') +
       '</div>' +
     '</div>';
 }
@@ -6766,6 +6856,16 @@ function buildProfil(res, date) {
 // jamais inclus dans l'application publiee. null tant que rien n'est importe.
 var FADY_RITES = null;
 
+// Section des textes importes dans la langue choisie (null si absente : ancien fichier)
+function ftTxt(sec) {
+  return (FADY_RITES && FADY_RITES[FT_LANGUE] && FADY_RITES[FT_LANGUE][sec]) || null;
+}
+
+// Invitation a importer la version a jour du fichier de textes
+function ftManque() {
+  return '<div class="pl-note pl-k">Indisponible, veuillez mettre &agrave; jour l\'appli.</div>';
+}
+
 // =======================================
 // HEURES : VINTANA ET PLANETES (ES5)
 // =======================================
@@ -6796,6 +6896,12 @@ var GRILLE = {
   'Adalo Vava':'------+', 'Adalo Vody':'+-+----',
   'Alohotsy Vava':'-+--+--', 'Alohotsy Vody':'-+--+--'
 };
+
+// Nature generale d'un jour : +1 faste, -1 nefaste (grille Isa x jour de la semaine)
+function natureJour(res, date) {
+  var cle = res.v.nom + ' ' + jourNom(res.v.j, res.v.total);
+  return (GRILLE[cle] || '-------').charAt(date.getDay()) === '+' ? 1 : -1;
+}
 
 // Ordre chaldeen ; c : f = faste, n = vigilance, x = neutre
 var PLANETES = [
@@ -6897,6 +7003,12 @@ function renderHorloge() {
   if ((x.vMin - x.h.v + 12) % 12 === 6) {
     html += '<div class="pl-note pl-n">&#9888; Heure et minute en opposition (Mifandratra) : prudence.</div>';
   }
+  // Activites et vigilance du vintana de l'heure (textes importes)
+  var hx = ftTxt('heures');
+  if (hx && hx[vh]) {
+    html += '<div class="pl-note pl-f"><b>' + (FT_LANGUE === 'mg' ? 'Zavatra azo atao' : 'Activit&eacute;s possibles') + ' :</b> ' + hx[vh].ok + '</div>' +
+      '<div class="pl-note pl-x"><b>' + (FT_LANGUE === 'mg' ? 'Tandremo' : 'Vigilance') + ' :</b> ' + hx[vh].vig + '</div>';
+  }
   el('hzBody').innerHTML = html;
   toggleClass(el('btnFixe'), 'active-niv', MIN_MODE === 'fixe');
   toggleClass(el('btnMobile'), 'active-niv', MIN_MODE === 'mobile');
@@ -6930,8 +7042,21 @@ function buildHeures(date) {
 // Meilleurs jours sur 30 jours pour le profil actif
 // Score : nature du jour (+1/-1), axes personnels (+1 favorable, -2 Mandratra),
 // Andro manindry (-2), Volana maty (jours 29-30 : -1)
+// Domaine de vie : si la case Isa x jour cite le domaine, +2 un jour faste, -2 un jour nefaste
 // Date de depart choisie dans la vue ; vide = aujourd'hui (valeur a l'ouverture de l'appli)
 var MJ_DEBUT = '';
+var MJ_DOMAINE = '';
+var MJ_DUREE = 30;
+
+// Heures planetaires fastes (Jupiter, Venus, Soleil) entre le lever et le coucher du soleil
+function oraTsara(dt) {
+  var h = heuresDuJour(dt.getFullYear(), dt.getMonth(), dt.getDate());
+  var out = [];
+  for (var i = 0; i < 12; i++) {
+    if (PLANETES[h[i].p].c === 'f') out.push(hhmm(h[i].deb) + ' ' + PLANETES[h[i].p].fr);
+  }
+  return out;
+}
 
 function meilleursJours(debut) {
   if (debut !== undefined) MJ_DEBUT = debut;
@@ -6942,42 +7067,305 @@ function meilleursJours(debut) {
   setNav('tabBest');
   var p = val.split('-');
   var n = pfNatal(PROFILS[PF_ACTIF]);
+  var doms = ftTxt('domaines');
+  var dom = doms ? MJ_DOMAINE : '';
+  var domNom = '';
+  var opts = '<option value="">Tous les domaines</option>';
+  for (var o = 0; doms && o < doms.length; o++) {
+    opts += '<option value="' + doms[o][0] + '"' + (doms[o][0] === dom ? ' selected' : '') + '>' + doms[o][1] + '</option>';
+    if (doms[o][0] === dom) domNom = doms[o][1];
+  }
   var jours = [];
-  for (var i = 0; i < 30; i++) {
+  for (var i = 0; i < MJ_DUREE; i++) {
     var dt = new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10) + i);
     if (dt > new Date(2050, 11, 14)) break;
     var res = compute(dt);
     var an = pfAnalyse(n, res, dt);
     var cle = res.v.nom + ' ' + jourNom(res.v.j, res.v.total);
-    var g = (GRILLE[cle] || '-------').charAt(dt.getDay()) === '+' ? 1 : -1;
+    var g = natureJour(res, dt);
     var score = g + an.nbF - 2 * an.nbN - (res.delta >= 28 ? 1 : 0);
     var motifs = [g > 0 ? 'jour faste' : 'jour n&eacute;faste'];
+    if (dom && FADY_RITES.domTags[cle][dt.getDay()].indexOf(dom) >= 0) {
+      score += 2 * g;
+      motifs.push(g > 0 ? 'domaine favoris&eacute;' : 'domaine &agrave; &eacute;viter');
+    }
     for (var k = 0; k < 4; k++) { if (an.axes[k][1].c !== 'x') motifs.push(an.axes[k][1].nom); }
     if (an.manindry) motifs.push('Andro manindry');
     if (res.delta >= 28) motifs.push('Volana maty');
     jours.push({d: dt, s: score, v: cle, m: motifs});
   }
   var tri = jours.slice().sort(function(a, b) { return b.s - a.s || a.d - b.d; });
-  function ligne(j) {
+  function ligne(j, ora) {
     var iso = j.d.getFullYear() + '-' + pad2(j.d.getMonth() + 1) + '-' + pad2(j.d.getDate());
     var c = j.s > 0 ? 'pl-f' : (j.s < 0 ? 'pl-n' : 'pl-x');
+    var o = ora ? oraTsara(j.d) : [];
     return '<div class="hr-row mj" onclick="calPick(\'' + iso + '\')">' +
       '<span class="hr-h">' + JMG[j.d.getDay()].fr.substr(0, 3) + ' ' + pad2(j.d.getDate()) + '/' + pad2(j.d.getMonth() + 1) + '</span>' +
       '<span>' + j.v + '</span><span class="' + c + '">' + (j.s > 0 ? '+' : '') + j.s + '</span>' +
-      '<span class="pl-k">' + j.m.join(', ') + '</span></div>';
+      '<span class="pl-k">' + j.m.join(', ') + (o.length ? '<br><span class="pl-f">Ora tsara : ' + o.join(', ') + '</span>' : '') + '</span></div>';
   }
   var best = '', worst = '';
-  for (var b = 0; b < Math.min(7, tri.length); b++) best += ligne(tri[b]);
-  for (var w = tri.length - 1; w >= Math.max(0, tri.length - 5); w--) worst += ligne(tri[w]);
+  for (var b = 0; b < Math.min(7, tri.length); b++) best += ligne(tri[b], true);
+  for (var w = tri.length - 1; w >= Math.max(0, tri.length - 5); w--) worst += ligne(tri[w], false);
   el('rp').innerHTML = '<div class="apanel anim">' +
-    '<div class="ptitle">Meilleurs jours &middot; ' + esc(PROFILS[PF_ACTIF].nom) + ' &middot; 30 jours</div>' +
+    '<div class="ptitle">Meilleurs jours &middot; ' + esc(PROFILS[PF_ACTIF].nom) + ' &middot; ' + MJ_DUREE + ' jours' + (domNom ? ' &middot; ' + domNom : '') + '</div>' +
     '<label class="pf-lbl" for="mjDebut">&Agrave; partir du</label>' +
-    '<div class="date-row" style="margin-bottom:14px">' +
+    '<div class="date-row" style="margin-bottom:10px">' +
       '<input type="date" id="mjDebut" value="' + val + '" min="1600-01-16" max="2050-12-14" onchange="if(this.value)meilleursJours(this.value)"/>' +
       '<button class="btn-s" onclick="meilleursJours(\'\')">Aujourd\'hui</button>' +
-    '</div>' + best +
+    '</div>' +
+    '<label class="pf-lbl" for="mjDom">Domaine de vie</label>' +
+    '<div class="date-row" style="margin-bottom:14px">' +
+      '<select class="pf-sel" id="mjDom" style="margin:0"' + (doms ? '' : ' disabled') + ' onchange="MJ_DOMAINE=this.value;meilleursJours()">' + opts + '</select>' +
+      '<select class="pf-sel" id="mjDuree" style="margin:0;width:auto" onchange="MJ_DUREE=parseInt(this.value,10);meilleursJours()">' +
+        '<option value="30"' + (MJ_DUREE === 30 ? ' selected' : '') + '>30 jours</option>' +
+        '<option value="60"' + (MJ_DUREE === 60 ? ' selected' : '') + '>60 jours</option>' +
+      '</select>' +
+    '</div>' + (doms ? '' : ftManque()) + best +
     '<div class="ptitle" style="margin-top:18px">Jours &agrave; &eacute;viter</div>' + worst +
     '<div class="pl-note pl-k">Cliquez sur un jour pour ouvrir sa fiche.</div></div>';
+}
+
+// =======================================
+// VUE COMPATIBILITE DE COUPLE (ES5)
+// =======================================
+
+var CP_A = -1, CP_B = -1;
+
+// Paire de vintana : categorie OANA (10 paires decrites), meme vintana, ou relation neutre
+function coupleBloc(titre, a, b) {
+  var t = FADY_RITES[FT_LANGUE], cp = FADY_RITES.couples, c = null;
+  for (var i = 0; i < cp.length; i++) {
+    if ((cp[i].a === a && cp[i].b === b) || (cp[i].a === b && cp[i].b === a)) c = cp[i];
+  }
+  var rel = pfRel(a, b, false), rel2 = pfRel(b, a, false);
+  var html = '<div class="ft-sec"><div class="vhead" style="margin-bottom:6px"><div class="ft-h" style="margin:0">' + titre + ' : ' + a + ' &amp; ' + b + '</div>';
+  if (a === b) {
+    html += '<span class="badge bf">' + (FT_LANGUE === 'mg' ? 'Mitovy vintana' : 'M&ecirc;me vintana') + '</span></div>' +
+      '<div class="ft-p">' + (FT_LANGUE === 'mg' ? 'Vintana mitovy : mirindra.' : 'M&ecirc;me vintana : relation harmonieuse.') + '</div>';
+  } else if (c) {
+    var bon = c.cat === 'mpianadahy' || c.cat === 'mifanatitra';
+    var tx = c[FT_LANGUE];
+    html += '<span class="badge ' + (bon ? 'bf' : 'bn') + '">' + t.coupleCat[c.cat] + '</span></div>' +
+      '<div class="ft-p"><b>' + tx[0] + '</b></div><div class="ft-p">' + tx[1] + '</div>' +
+      '<div class="pl-note pl-n"><b>' + (FT_LANGUE === 'mg' ? 'Tandremo' : 'Point de vigilance') + ' :</b> ' + tx[2] + '</div>' +
+      '<div class="pl-note pl-f">' + tx[3] + '</div>';
+  } else {
+    html += '<span class="badge bx">' + (FT_LANGUE === 'mg' ? 'Tsotra' : 'Neutre') + '</span></div>' +
+      '<div class="ft-p">' + t.coupleNeutre + '</div>';
+  }
+  if (a !== b) {
+    html += '<div class="pl-row"><span class="pl-k">' + a + ' &rarr; ' + b + '</span><span class="pl-' + rel.c + '">' + rel.nom + '</span></div>' +
+      '<div class="pl-row"><span class="pl-k">' + b + ' &rarr; ' + a + '</span><span class="pl-' + rel2.c + '">' + rel2.nom + '</span></div>';
+  }
+  return html + '</div>';
+}
+
+function showCouple() {
+  CAL_ON = false;
+  setNav('tabCouple');
+  if (PROFILS.length < 2) {
+    el('rp').innerHTML = '<div class="apanel anim"><div class="ptitle">Compatibilit&eacute; de couple</div>' +
+      '<div class="ft-p">Il faut au moins deux profils pour comparer deux personnes.</div>' +
+      '<button class="btn-p" onclick="pfOpen()">Cr&eacute;er un profil</button></div>';
+    return;
+  }
+  if (!(CP_A >= 0 && CP_A < PROFILS.length)) CP_A = PF_ACTIF >= 0 ? PF_ACTIF : 0;
+  if (!(CP_B >= 0 && CP_B < PROFILS.length) || CP_B === CP_A) CP_B = (CP_A + 1) % PROFILS.length;
+  function choix(id, cur, autre) {
+    var s = '<select class="pf-sel" id="' + id + '" style="margin:0" onchange="' + (id === 'cpA' ? 'CP_A' : 'CP_B') + '=parseInt(this.value,10);showCouple()">';
+    for (var i = 0; i < PROFILS.length; i++) {
+      if (i !== autre) s += '<option value="' + i + '"' + (i === cur ? ' selected' : '') + '>' + esc(PROFILS[i].nom) + '</option>';
+    }
+    return s + '</select>';
+  }
+  var html = '<div class="apanel anim"><div class="ptitle">Compatibilit&eacute; de couple</div>' +
+    '<div class="date-row" style="margin-bottom:14px">' + choix('cpA', CP_A, CP_B) + choix('cpB', CP_B, CP_A) + '</div>';
+  if (!FADY_RITES || !FADY_RITES.couples) {
+    el('rp').innerHTML = html + ftManque() + '</div>';
+    return;
+  }
+  var na = pfNatal(PROFILS[CP_A]), nb = pfNatal(PROFILS[CP_B]);
+  html += coupleBloc(FT_LANGUE === 'mg' ? 'Vintana nahaterahana' : 'Vintana du jour natal', na.jour, nb.jour) +
+    coupleBloc(FT_LANGUE === 'mg' ? 'Volana nahaterahana' : 'Mois natal', na.mois, nb.mois);
+  el('rp').innerHTML = html + '</div>';
+}
+
+// =======================================
+// VUE LIEUX SACRES (ES5) - carte Leaflet chargee a la demande
+// =======================================
+
+// Filtres de la vue ; pos = position du telephone [lat, lon] apres "Pres de moi"
+var LX = {v: '', t: '', r: '', mien: false, pos: null, fond: 'plan', max: 30};
+var LMAP = null, LFONDS = {}, LCALQUE = null, LMOI = null, LMARQUES = [], LLISTE = [];
+
+function lxCharger(suite) {
+  if (window.L) { suite(); return; }
+  var c = document.createElement('link');
+  c.rel = 'stylesheet';
+  c.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+  document.head.appendChild(c);
+  var s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+  s.onload = suite;
+  s.onerror = function() { el('lxCarte').innerHTML = '<div class="pl-note pl-k">Carte indisponible sans connexion internet.</div>'; };
+  document.head.appendChild(s);
+}
+
+// Distance en km entre deux points [lat, lon]
+function lxDist(a, b) {
+  var r = Math.PI / 180;
+  var x = Math.sin((b[0] - a[0]) * r / 2), y = Math.sin((b[1] - a[1]) * r / 2);
+  var h = x * x + Math.cos(a[0] * r) * Math.cos(b[0] * r) * y * y;
+  return 12742 * Math.asin(Math.sqrt(h));
+}
+
+function lxMienV() {
+  return (PF_ACTIF >= 0) ? pfNatal(PROFILS[PF_ACTIF]).jour : '';
+}
+
+// Lieux retenus par les filtres, tries par distance (si position connue) ou par nom
+function lxListe() {
+  var tous = FADY_RITES.lieux, mien = lxMienV(), out = [];
+  for (var i = 0; i < tous.length; i++) {
+    var x = tous[i];
+    if (LX.v && x.v !== LX.v) continue;
+    if (LX.t && x.t !== LX.t) continue;
+    if (LX.r && x.r !== LX.r) continue;
+    if (LX.mien && x.v !== mien) continue;
+    out.push({x: x, km: LX.pos ? lxDist(LX.pos, [x.lat, x.lon]) : 0, mien: x.v === mien});
+  }
+  out.sort(function(a, b) { return LX.pos ? a.km - b.km : a.x.n.localeCompare(b.x.n, 'fr'); });
+  return out;
+}
+
+function lxPopup(e) {
+  var x = e.x, types = ftTxt('lieuTypes');
+  var li = function(t, arr) {
+    return arr.length ? '<div class="lx-p"><b>' + t + ' :</b> ' + esc(arr.join(' ; ')) + '</div>' : '';
+  };
+  var st = x.st === 'verifiedSite' ? '' :
+    '<div class="lx-p lx-st">' + (x.st === 'approximateLocality' ? 'Localisation approximative.' : 'Position non v&eacute;rifi&eacute;e : &agrave; confirmer sur place.') + '</div>';
+  return '<div class="lx-pop"><div class="lx-pt">' + esc(x.n) + '</div>' +
+    (x.m ? '<div class="lx-p"><i>' + esc(x.m) + '</i></div>' : '') +
+    '<div class="lx-p">' + esc(types[x.t] || x.t) + ' &middot; ' + x.v + (e.mien ? ' (votre vintana)' : '') + ' &middot; ' + esc(x.r) + '</div>' +
+    '<div class="lx-p">' + esc(x.d) + '</div>' + li('Fady', x.fady) + li('Rites', x.rites) + st +
+    (x.src ? '<div class="lx-p lx-src">Sources : ' + esc(x.src) + '</div>' : '') +
+    '<a class="lx-it" href="https://www.google.com/maps/dir/?api=1&amp;destination=' + x.lat + ',' + x.lon + '" target="_blank" rel="noopener">Itin&eacute;raire</a></div>';
+}
+
+// Redessine les marqueurs et la liste selon les filtres
+function lxMaj() {
+  LLISTE = lxListe();
+  var html = '<div class="lx-compte">' + LLISTE.length + ' lieu' + (LLISTE.length > 1 ? 'x' : '') + (LX.pos ? ', du plus proche au plus lointain' : '') + '</div>';
+  for (var i = 0; i < Math.min(LX.max, LLISTE.length); i++) {
+    var e = LLISTE[i];
+    html += '<button class="lx-item' + (e.mien ? ' mien' : '') + '" onclick="lxVoir(' + i + ')">' +
+      '<span class="lx-n">' + esc(e.x.n) + '</span>' +
+      '<span class="lx-s">' + e.x.v + ' &middot; ' + esc(e.x.r) + (LX.pos ? ' &middot; ' + Math.round(e.km) + ' km' : '') + '</span></button>';
+  }
+  if (LLISTE.length > LX.max) html += '<button class="btn-s" style="margin-top:8px" onclick="LX.max+=30;lxMaj()">Afficher plus</button>';
+  el('lxListe').innerHTML = html;
+  if (!LMAP) return;
+  LCALQUE.clearLayers();
+  LMARQUES = [];
+  var pts = [];
+  for (var k = 0; k < LLISTE.length; k++) {
+    var x = LLISTE[k];
+    var m = L.circleMarker([x.x.lat, x.x.lon], {radius: x.mien ? 8 : 6, color: '#1D2B53', weight: 1.5,
+      fillColor: x.mien ? '#F5B31B' : '#0E7F81', fillOpacity: 0.9}).bindPopup(lxPopup(x), {maxWidth: 300});
+    LCALQUE.addLayer(m);
+    LMARQUES.push(m);
+    pts.push([x.x.lat, x.x.lon]);
+  }
+  if (LX.pos) LMAP.setView(LX.pos, 9);
+  else if (pts.length && (LX.v || LX.t || LX.r || LX.mien)) LMAP.fitBounds(pts, {padding: [30, 30], maxZoom: 11});
+  else LMAP.setView([-19.2, 46.9], 5);
+}
+
+function lxVoir(i) {
+  if (!LMAP) return;
+  var x = LLISTE[i].x;
+  LMAP.setView([x.lat, x.lon], 13);
+  LMARQUES[i].openPopup();
+  var r = el('lxCarte').getBoundingClientRect();
+  if (r.top < 0 || r.bottom > window.innerHeight) window.scrollTo(0, window.pageYOffset + r.top - 12);
+}
+
+function lxFond(f) {
+  LX.fond = f;
+  toggleClass(el('lxPlan'), 'active-niv', f === 'plan');
+  toggleClass(el('lxSat'), 'active-niv', f === 'sat');
+  if (!LMAP) return;
+  LMAP.removeLayer(LFONDS[f === 'plan' ? 'sat' : 'plan']);
+  LFONDS[f].addTo(LMAP);
+}
+
+function lxPresDeMoi() {
+  if (!navigator.geolocation) { alert('Position indisponible sur cet appareil.'); return; }
+  el('lxMoi').innerHTML = 'Recherche...';
+  navigator.geolocation.getCurrentPosition(function(p) {
+    LX.pos = [p.coords.latitude, p.coords.longitude];
+    LX.max = 30;
+    el('lxMoi').innerHTML = 'Pr&egrave;s de moi';
+    if (LMAP) {
+      if (LMOI) LMAP.removeLayer(LMOI);
+      LMOI = L.circleMarker(LX.pos, {radius: 7, color: '#fff', weight: 3, fillColor: '#CF3A50', fillOpacity: 1}).addTo(LMAP).bindPopup('Vous &ecirc;tes ici');
+    }
+    lxMaj();
+  }, function() {
+    el('lxMoi').innerHTML = 'Pr&egrave;s de moi';
+    alert('Position refusée ou introuvable. Autorisez la localisation pour cette appli.');
+  }, {timeout: 15000, maximumAge: 300000});
+}
+
+function showLieux() {
+  CAL_ON = false;
+  setNav('tabLieux');
+  if (LMAP) { LMAP.remove(); LMAP = null; LMOI = null; }
+  var tete = '<div class="apanel anim"><div class="ptitle">Lieux sacr&eacute;s</div>';
+  if (!FADY_RITES || !FADY_RITES.lieux) { el('rp').innerHTML = tete + ftManque() + '</div>'; return; }
+  var types = ftTxt('lieuTypes'), regs = {}, i, k;
+  for (i = 0; i < FADY_RITES.lieux.length; i++) regs[FADY_RITES.lieux[i].r] = 1;
+  function opt(val, lib, cur) { return '<option value="' + esc(val) + '"' + (val === cur ? ' selected' : '') + '>' + lib + '</option>'; }
+  var oV = opt('', 'Tous les vintana', LX.v), oT = opt('', 'Tous les types', LX.t), oR = opt('', 'Toutes les r&eacute;gions', LX.r);
+  for (i = 0; i < VO.length; i++) oV += opt(VO[i].nom, VO[i].nom, LX.v);
+  for (k in types) oT += opt(k, types[k], LX.t);
+  var lr = [];
+  for (k in regs) lr.push(k);
+  lr.sort();
+  for (i = 0; i < lr.length; i++) oR += opt(lr[i], esc(lr[i]), LX.r);
+  var mien = lxMienV();
+  el('rp').innerHTML = tete +
+    '<div class="lx-filtres">' +
+      '<select class="pf-sel" aria-label="Vintana du lieu" onchange="LX.v=this.value;LX.max=30;lxMaj()">' + oV + '</select>' +
+      '<select class="pf-sel" aria-label="Type de lieu" onchange="LX.t=this.value;LX.max=30;lxMaj()">' + oT + '</select>' +
+      '<select class="pf-sel" aria-label="R&eacute;gion" onchange="LX.r=this.value;LX.max=30;lxMaj()">' + oR + '</select>' +
+    '</div>' +
+    '<div class="lx-bar">' +
+      (mien ? '<label class="lx-mien"><input type="checkbox"' + (LX.mien ? ' checked' : '') + ' onchange="LX.mien=this.checked;LX.max=30;lxMaj()"/> Mon vintana (' + mien + ')</label>' : '') +
+      '<button class="btn-s" id="lxMoi" onclick="lxPresDeMoi()">Pr&egrave;s de moi</button>' +
+      '<div class="seg" style="grid-template-columns:1fr 1fr">' +
+        '<button class="nlvl-btn' + (LX.fond === 'plan' ? ' active-niv' : '') + '" id="lxPlan" onclick="lxFond(\'plan\')">Plan</button>' +
+        '<button class="nlvl-btn' + (LX.fond === 'sat' ? ' active-niv' : '') + '" id="lxSat" onclick="lxFond(\'sat\')">Satellite</button>' +
+      '</div>' +
+    '</div>' +
+    '<div id="lxCarte" class="lx-carte"></div>' +
+    '<div class="pl-note pl-k">En jaune, les lieux de votre vintana. La plupart des positions viennent d\'OANA et restent &agrave; v&eacute;rifier sur place.</div>' +
+    '<div id="lxListe"></div></div>';
+  lxMaj();
+  lxCharger(function() {
+    if (!el('lxCarte') || LMAP) return;
+    LMAP = L.map('lxCarte').setView([-19.2, 46.9], 5);
+    // Fond Plan Esri : les serveurs OpenStreetMap refusent (403) les pages ouvertes sans adresse web (fichier local, appli installee)
+    LFONDS.plan = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {maxZoom: 19, attribution: 'Esri, HERE, Garmin, &copy; OpenStreetMap'});
+    LFONDS.sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom: 18, attribution: 'Esri World Imagery'});
+    LFONDS[LX.fond].addTo(LMAP);
+    LCALQUE = L.layerGroup().addTo(LMAP);
+    if (LX.pos) LMOI = L.circleMarker(LX.pos, {radius: 7, color: '#fff', weight: 3, fillColor: '#CF3A50', fillOpacity: 1}).addTo(LMAP);
+    lxMaj();
+    setTimeout(function() { if (LMAP) LMAP.invalidateSize(); }, 400);
+  });
 }
 
 // =======================================
@@ -6991,12 +7379,16 @@ var FT_LIB = {
        remedes: 'Rem&egrave;des (faditra et offrande)', circ: 'Circoncision (vintana du jour)',
        fond: 'Fondations et premier coup de b&ecirc;che', tomb: 'Tombeau (vintana du terrain)',
        jours: 'Les sept jours', note: 'Fady et rem&egrave;des : vintana natal. Circoncision : vintana du jour. Tombeau : vintana du terrain.',
-       ok: 'Faste', non: 'Proscrit', cond: 'Sous conditions', maj: 'Mettre &agrave; jour les textes'},
+       ok: 'Faste', non: 'Proscrit', cond: 'Sous conditions', maj: 'Mettre &agrave; jour les textes',
+       metiers: 'M&eacute;tiers', qualites: 'Qualit&eacute;s', sante: 'Sant&eacute;', prenoms: 'Pr&eacute;noms traditionnels',
+       boy: 'gar&ccedil;on', girl: 'fille', vavany: 'Vava', vontony: 'Vonto', vodiny: 'Vody'},
   mg: {titre: 'Fady sy fomba', vintana: 'Vintana', natal: 'vintana nahaterahana', fady: 'Fady',
        remedes: 'Fanalana faditra sy fanarenana', circ: 'Famorana zaza (vintan&rsquo;ny andro)',
        fond: 'Fandatsaham-bato', tomb: 'Fasana (vintan&rsquo;ny tany)',
        jours: 'Ny andro fito', note: 'Fady sy fanafody : vintana nahaterahana. Famorana : vintan&rsquo;ny andro. Fasana : vintan&rsquo;ny tany.',
-       ok: 'Tsara', non: 'Fady', cond: 'Misy fepetra', maj: 'Havaozina ny lahatsoratra'}
+       ok: 'Tsara', non: 'Fady', cond: 'Misy fepetra', maj: 'Havaozina ny lahatsoratra',
+       metiers: 'Asa', qualites: 'Toetra', sante: 'Fahasalamana', prenoms: 'Anarana nentim-paharazana',
+       boy: 'lahy', girl: 'vavy', vavany: 'Vava', vontony: 'Vonto', vodiny: 'Vody'}
 };
 
 function setFtLangue(l) {
@@ -7043,7 +7435,9 @@ function ftCharger(input) {
     FADY_RITES = d;
     try { localStorage.setItem('alimanaka_textes', lr.result); }
     catch (e) { alert('Textes chargés pour cette session, mais impossible de les garder sur cet appareil.'); }
-    showFadyRites();
+    // Le bouton de l'en-tete peut importer depuis n'importe quelle vue : on redessine celle-ci
+    renderHorloge();
+    refreshVue(false);
   };
   lr.readAsText(f, 'utf-8');
 }
@@ -7094,6 +7488,25 @@ function renderFadyRites() {
   // Tombeau
   html += '<div class="ft-sec"><div class="ft-h">' + lib.tomb + '</div>' +
     '<div class="ft-box">' + ftBadge(FADY_RITES.tombIcon[v], lib) + ' ' + t.tomb[v] + '</div>' + t.tombRegles + '</div>';
+
+  // Metiers, sante et prenoms du vintana (absents des fichiers de textes version 1)
+  if (t.metiers) {
+    html += '<div class="ft-sec"><div class="ft-h">' + lib.metiers + ' &middot; ' + v + '</div>' +
+      '<div class="ft-p"><b>' + lib.metiers + ' :</b> ' + t.metiers[v].metiers + '</div>' +
+      '<div class="ft-p"><b>' + lib.qualites + ' :</b> ' + t.metiers[v].qualites + '</div></div>';
+    var sa = t.sante[v];
+    html += '<div class="ft-sec"><div class="ft-h">' + lib.sante + ' &middot; ' + v + '</div>' +
+      '<div class="ft-box"><b>' + sa.mal + '</b>' + (sa.organes.length ? ' (' + sa.organes.join(', ') + ')' : '') + '<br>' + sa.desc + '</div></div>';
+    html += '<div class="ft-sec"><div class="ft-h">' + lib.prenoms + ' &middot; ' + v + '</div>';
+    var pr = t.prenoms[v] || [];
+    for (var q = 0; q < pr.length; q++) {
+      html += '<div class="ft-li"><span>&bull;</span><div><b>' + pr[q].nom + '</b> (' + lib[pr[q].genre] + ', ' + lib[pr[q].pos] + ') : ' +
+        pr[q].sens + ' ' + pr[q].vertu + '</div></div>';
+    }
+    html += '</div>';
+  } else {
+    html += '<div class="ft-sec">' + ftManque() + '</div>';
+  }
 
   // Sept jours
   html += '<div class="ft-sec"><div class="ft-h">' + lib.jours + '</div>' + t.jours + '</div>';

@@ -271,8 +271,6 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.5em;}
 .ft-li>div,.ft-li2>div{flex:1;min-width:0;}
 .ft-box{background:var(--card2);border-radius:14px;padding:12px 14px;margin:8px 0;font-size:16px;line-height:1.65;}
 
-footer{text-align:center;padding:36px 0 0;color:var(--ink2);font-size:14px;}
-footer .proverbe{font-family:var(--display);font-size:17px;color:var(--ink);margin-bottom:4px;}
 
 @keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .anim{animation:fi .3s ease-out;}
@@ -430,10 +428,6 @@ try { var thSauve = localStorage.getItem('alimanaka_theme'); if (thSauve) docume
     </section>
   </aside>
 </div>
-<footer>
-  <div class="proverbe">&laquo; Vintana tsy namono &raquo;</div>
-  <div>Les astres ne blessent pas, le destin ne tue point.</div>
-</footer>
 </div>
 <input type="file" id="ftFile" accept=".json,application/json" style="display:none" onchange="ftCharger(this)"/>
 <div class="pf-modal" id="pfModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="pfTitre">
@@ -472,7 +466,7 @@ var VO = [
   {nom:'Alohotsy', d:2,f:false,e:'Rano',     p:'Avaratra'}
 ];
 
-// Nom propre des 28 Isa (Isa Lava, d'apres OANA)
+// Nom propre des 28 Isa (Isa Lava)
 var ISA_NOM = {
   'Alahamady Vava':'Asoronteny', 'Alahamady Vonto':'Aliboteny', 'Alahamady Vody':'Asoriza',
   'Adaoro Vava':'Adabara', 'Adaoro Vody':'Alahaka', 'Adizaoza Vava':'Alihina', 'Adizaoza Vody':'Azira',
@@ -484,7 +478,7 @@ var ISA_NOM = {
   'Adalo Vava':'Sadalakabia', 'Adalo Vody':'Faroalimokadamo', 'Alohotsy Vava':'Faroalimokaro', 'Alohotsy Vody':'Batanalohotsy'
 };
 
-// Planete maitresse de chaque vintana (d'apres OANA)
+// Planete maitresse de chaque vintana
 var PLANETE_V = {
   'Alahamady':'Mars, Soleil', 'Adaoro':'V&eacute;nus', 'Adizaoza':'Mercure', 'Asorotany':'Lune',
   'Alahasaty':'Soleil, Mars', 'Asombola':'Mercure', 'Adimizana':'V&eacute;nus', 'Alakarabo':'Mars',
@@ -6350,7 +6344,7 @@ function calculate() {
   el('pFill').style.width = Math.min(100, Math.round((delta/29)*100)) + '%';
   el('pLbl').innerHTML   = 'Andro ' + (delta+1) + " amin\'ny volana";
 
-  // Nature generale du jour : Isa x jour de la semaine (grille OANA)
+  // Nature generale du jour : Isa x jour de la semaine
   var faste = natureJour(res, date) > 0;
   var fc = faste ? 'faste' : 'nefaste';
   var bc = faste ? 'bf' : 'bn';
@@ -6921,7 +6915,7 @@ var LIEUX = [
 ];
 var EAT = 3 * 3600000;
 
-// Nature generale du jour (Isa x jour de semaine, d'apres OANA) : getDay 0 = dimanche
+// Nature generale du jour (Isa x jour de semaine) : getDay 0 = dimanche
 var GRILLE = {
   'Alahamady Vava':'+----+-', 'Alahamady Vonto':'----+--', 'Alahamady Vody':'----++-',
   'Adaoro Vava':'+++--++', 'Adaoro Vody':'++++--+',
@@ -7352,7 +7346,7 @@ function meilleursJours(debut) {
 
 var CP_A = -1, CP_B = -1;
 
-// Paire de vintana : categorie OANA (10 paires decrites), meme vintana, ou relation neutre
+// Paire de vintana : categorie (10 paires decrites), meme vintana, ou relation neutre
 function coupleBloc(titre, a, b) {
   var t = FADY_RITES[FT_LANGUE], cp = FADY_RITES.couples, c = null;
   for (var i = 0; i < cp.length; i++) {
@@ -7571,7 +7565,7 @@ function showLieux() {
       '</div>' +
     '</div>' +
     '<div id="lxCarte" class="lx-carte"></div>' +
-    '<div class="pl-note pl-k">En jaune, les lieux de votre vintana. La plupart des positions viennent d\'OANA et restent &agrave; v&eacute;rifier sur place.</div>' +
+    '<div class="pl-note pl-k">En jaune, les lieux de votre vintana. La plupart des positions restent &agrave; v&eacute;rifier sur place.</div>' +
     '<div id="lxListe"></div></div>';
   lxMaj();
   lxCharger(function() {

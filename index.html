@@ -240,6 +240,7 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.5em;}
 /* Lieux sacres : la carte isole les z-index de Leaflet pour rester sous la barre d'onglets */
 .lx-filtres{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
 .lx-filtres .pf-sel{margin:0;}
+.lx-q{background-image:none;padding-right:12px;margin-bottom:8px;}
 .lx-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:10px 0;}
 .lx-bar .btn-s{width:auto;}
 .lx-bar .seg{margin-left:auto;min-width:200px;}
@@ -7017,7 +7018,7 @@ function instantVintana(t) {
 // Les 12 vintana font le tour d'une grille 4 x 4 : la maison orientee, Alahamady au coin nord-est.
 // Case [ligne, colonne] de chaque vintana, dans l'ordre de VO
 var HZ_RC = [[0,3],[1,3],[2,3],[3,3],[3,2],[3,1],[3,0],[2,0],[1,0],[0,0],[0,1],[0,2]];
-// Couleurs selon la relation au natal : [case de l'heure, case de la minute, trait du jour] ; o = sans profil
+// Couleurs selon la relation au natal : [case du jour, case de la minute, cadre de l'heure] ; o = sans profil
 var HZ_COL = {f: ['#8FD19C', '#DDF2E1', '#3FA55A'], n: ['#F29A90', '#FCE1DE', '#E0493C'],
               x: ['#A6C1F2', '#E1EAFB', '#4A7BD8'], o: ['#FFD15C', '#FFF0C2', '#1D2B53']};
 var HZ_VERDICT = {f: 'Favorable', n: 'Vigilance', x: 'Neutre'};
@@ -7237,18 +7238,18 @@ function hzMaj() {
     var vj = findVOIndex(compute(new Date()).v.nom), rj = hzRel(vj);
     hzBande(rj);
     for (i = 0; i < 12; i++) {
-      HZ_CASES[i].setAttribute('fill', i === vh ? HZ_COL[rh.c][0] : (i === vm ? HZ_COL[rm.c][1] : '#FFF8E1'));
+      HZ_CASES[i].setAttribute('fill', i === vj ? HZ_COL[rj.c][0] : (i === vm ? HZ_COL[rm.c][1] : '#FFF8E1'));
       while (HZ_ICO[i].firstChild) HZ_ICO[i].removeChild(HZ_ICO[i].firstChild);
       if (i === vh) hzIcone(x.h.p, HZ_ICO[i]);
       HZ_PISTE[i].setAttribute('stroke', (i - start + 12) % 12 < x.sect ? '#BFE3DE' : '#FFFFFF');
     }
-    // Cadre arrondi autour de la case du vintana du jour
-    var o = 3.5, r = 17, s = HZ_S + 2 * o, x0 = hzX(vj) - o, y0 = hzY(vj) - o;
+    // Cadre arrondi autour de la case du vintana de l'heure
+    var o = 3.5, r = 17, s = HZ_S + 2 * o, x0 = hzX(vh) - o, y0 = hzY(vh) - o;
     var a = 'A' + r + ' ' + r + ' 0 0 1 ';
     el('hzJour').setAttribute('d', 'M' + (x0 + r) + ' ' + y0 + 'H' + (x0 + s - r) + a + (x0 + s) + ' ' + (y0 + r) +
       'V' + (y0 + s - r) + a + (x0 + s - r) + ' ' + (y0 + s) + 'H' + (x0 + r) + a + x0 + ' ' + (y0 + s - r) +
       'V' + (y0 + r) + a + (x0 + r) + ' ' + y0 + 'Z');
-    el('hzJour').setAttribute('stroke', HZ_COL[rj.c][2]);
+    el('hzJour').setAttribute('stroke', HZ_COL[rh.c][2]);
     el('hzCtr').setAttribute('fill', x.h.nuit ? '#22305E' : '#FFFFFF');
     el('hzT').setAttribute('fill', x.h.nuit ? '#FFEFC2' : HZ_INK);
     el('hzT').textContent = hhmm(now);
@@ -7473,8 +7474,8 @@ function showCouple() {
 // VUE LIEUX SACRES (ES5) - carte Leaflet chargee a la demande
 // =======================================
 
-// Filtres de la vue ; pos = position du telephone [lat, lon] apres "Pres de moi"
-var LX = {v: '', t: '', r: '', mien: false, pos: null, fond: 'plan', max: 30};
+// Filtres de la vue ; pos = position du telephone [lat, lon] apres "Pres de moi" ; q = mots-cles
+var LX = {v: '', t: '', r: '', q: '', mien: false, pos: null, fond: 'plan', max: 30};
 var LMAP = null, LFONDS = {}, LCALQUE = null, LMOI = null, LMARQUES = [], LLISTE = [];
 
 function lxCharger(suite) {
@@ -7502,15 +7503,34 @@ function lxMienV() {
   return (PF_ACTIF >= 0) ? pfNatal(PROFILS[PF_ACTIF]).jour : '';
 }
 
+// Minuscules sans accents, pour une recherche tolerante
+function lxNorm(s) {
+  s = String(s).toLowerCase();
+  return s.normalize ? s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’']/g, ' ') : s;
+}
+
+// Texte cherchable d'un lieu : noms, description, fady, rites, region, vintana, type
+function lxTexte(x) {
+  if (!x._s || x._l !== FT_LANGUE) {
+    var types = ftTxt('lieuTypes');
+    x._l = FT_LANGUE;
+    x._s = lxNorm([x.n, x.m, x.d, x.r, x.v, types[x.t] || x.t].concat(x.fady || [], x.rites || []).join(' '));
+  }
+  return x._s;
+}
+
 // Lieux retenus par les filtres, tries par distance (si position connue) ou par nom
 function lxListe() {
   var tous = FADY_RITES.lieux, mien = lxMienV(), out = [];
+  var mots = lxNorm(LX.q).split(/\s+/), j, ok;
   for (var i = 0; i < tous.length; i++) {
     var x = tous[i];
     if (LX.v && x.v !== LX.v) continue;
     if (LX.t && x.t !== LX.t) continue;
     if (LX.r && x.r !== LX.r) continue;
     if (LX.mien && x.v !== mien) continue;
+    for (j = 0, ok = true; j < mots.length && ok; j++) ok = !mots[j] || lxTexte(x).indexOf(mots[j]) >= 0;
+    if (!ok) continue;
     out.push({x: x, km: LX.pos ? lxDist(LX.pos, [x.lat, x.lon]) : 0, mien: x.v === mien});
   }
   out.sort(function(a, b) { return LX.pos ? a.km - b.km : a.x.n.localeCompare(b.x.n, 'fr'); });
@@ -7557,7 +7577,7 @@ function lxMaj() {
     pts.push([x.x.lat, x.x.lon]);
   }
   if (LX.pos) LMAP.setView(LX.pos, 9);
-  else if (pts.length && (LX.v || LX.t || LX.r || LX.mien)) LMAP.fitBounds(pts, {padding: [30, 30], maxZoom: 11});
+  else if (pts.length && (LX.v || LX.t || LX.r || LX.q || LX.mien)) LMAP.fitBounds(pts, {padding: [30, 30], maxZoom: 11});
   else LMAP.setView([-19.2, 46.9], 5);
 }
 
@@ -7615,6 +7635,8 @@ function showLieux() {
   for (i = 0; i < lr.length; i++) oR += opt(lr[i], esc(lr[i]), LX.r);
   var mien = lxMienV();
   el('rp').innerHTML = tete +
+    '<input type="search" class="pf-sel lx-q" aria-label="Rechercher un lieu" placeholder="Rechercher : nom, fady, rite, ville..." value="' + esc(LX.q) + '"' +
+      ' oninput="LX.q=this.value;LX.max=30;lxMaj()"/>' +
     '<div class="lx-filtres">' +
       '<select class="pf-sel" aria-label="Vintana du lieu" onchange="LX.v=this.value;LX.max=30;lxMaj()">' + oV + '</select>' +
       '<select class="pf-sel" aria-label="Type de lieu" onchange="LX.t=this.value;LX.max=30;lxMaj()">' + oT + '</select>' +

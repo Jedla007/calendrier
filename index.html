@@ -197,9 +197,9 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.5em;}
 .cal-nani{font-size:13px;font-weight:600;color:var(--ink2);text-align:right;font-variant-numeric:tabular-nums;}
 .cal-row .dot{width:11px;height:11px;}
 .dot-f{background:var(--leaf);}.dot-n{background:var(--hibi);}.dot-x{background:var(--blue);}
-.dot-p0{background:var(--leaf);}.dot-p1{background:var(--lime);}.dot-p2{background:var(--blue);}.dot-p3{background:var(--orange);}.dot-p4{background:var(--hibi);}
+.dot-p0{background:var(--leaf);}.dot-p1{background:var(--lime);}.dot-p2{background:var(--blue);}.dot-p3{background:var(--orange);}.dot-p4{background:var(--hibi);}.dot-p5{background:var(--sun);}
 .cal-row .dot.pdbl,.cal-legend .dot.pdbl{width:15px;height:15px;border:3.5px solid;}
-.ring-p0{border-color:var(--leaf)!important;}.ring-p1{border-color:var(--lime)!important;}.ring-p2{border-color:var(--blue)!important;}.ring-p4{border-color:var(--hibi)!important;}
+.ring-p0{border-color:var(--leaf)!important;}.ring-p1{border-color:var(--lime)!important;}.ring-p2{border-color:var(--blue)!important;}.ring-p4{border-color:var(--hibi)!important;}.ring-p5{border-color:var(--sun)!important;}
 .cal-legend .ring-x{border-color:var(--ink2)!important;background:transparent;}.cal-legend .dot-c{border:none;}
 .cal-legend{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:center;margin-top:16px;font-size:14px;color:var(--ink2);}
 .cal-legend .dot{width:11px;height:11px;display:inline-block;vertical-align:middle;margin-right:6px;}
@@ -282,14 +282,14 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.5em;}
   h1{font-size:32px;}
   .subtitle{display:none;}
   .maj-btn{padding:6px 10px;}
-  .pf-info{display:none;}
+  .ctrl .pf-info{grid-column:1/-1;grid-row:2;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:2px 12px;font-size:13px;line-height:1.4;}
   .layout{grid-template-columns:minmax(0,1fr);grid-template-areas:"ctrl" "main" "extra";grid-template-rows:none;gap:16px;}
   /* Telephone : profil et date en deux lignes sans titres ; panneaux du bas reserves a l'onglet Jour */
   .ctrl .panel{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:12px;}
   .ctrl .ptitle{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);}
   .ctrl #pfSel{grid-column:1;grid-row:1;margin:0;}
   .ctrl .pf-head{grid-column:2;grid-row:1;margin:0;}
-  .ctrl .date-row{grid-column:1/-1;grid-row:2;}
+  .ctrl .date-row{grid-column:1/-1;grid-row:3;}
   .pf-long{display:none;}
   /* Calendrier : le choix du mois et de l'annee reste visible en haut pendant le defilement */
   .cal-head{position:sticky;top:env(safe-area-inset-top);z-index:5;background:var(--card);margin:-18px -14px 8px;padding:12px 14px 8px;border-radius:22px 22px 0 0;border-bottom:1px solid var(--line);}
@@ -6716,11 +6716,15 @@ function pfRender() {
   sel.innerHTML = html;
   if (PF_ACTIF < 0) { el('pfInfo').innerHTML = ''; return; }
   var pf = PROFILS[PF_ACTIF];
-  var n = pfNatal(pf);
-  var d = pf.naissance.split('-');
-  el('pfInfo').innerHTML = 'N&eacute;(e) le ' + d[2] + '/' + d[1] + '/' + d[0] + '<br>' +
-    'Vintana du jour : <b>' + n.jn + ' ' + n.jour + '</b><br>' +
-    'Mois natal : <b>' + n.mois + '</b>';
+  var dn = pfDate(pf.naissance), r = compute(dn);
+  var jm = ['Alahady', 'Alatsinainy', 'Talata', 'Alarobia', 'Alakamisy', 'Zom&agrave;', 'Sabotsy'][dn.getDay()];
+  // Vintana du jour natal, vintana du mois natal, jour du cycle, jour de naissance
+  function ligne(v) { return '<div class="pf-l"><b>' + v + '</b></div>'; }
+  el('pfInfo').innerHTML =
+    ligne(jourNom(r.v.j, r.v.total) + ' ' + r.v.nom) +
+    ligne(r.moisNom) +
+    ligne((r.delta + 1) + (r.delta === 0 ? '<sup>er</sup>' : '<sup>e</sup>') + ' jour') +
+    ligne(jm);
 }
 
 // Lieu du profil actif (Antananarivo par defaut)
@@ -6802,6 +6806,7 @@ function pfRel(natal, consulte, memeMois) {
   if (r === 7) return {nom: 'Mandratra', t: 'opposition', c: 'n'};
   if (r === 8) return {nom: 'Mamelona', t: 'nourrit et revitalise', c: 'f'};
   if (r === 1 && memeMois) return {nom: 'Mois natal', t: 'renouveau', c: 'f'};
+  if (r === 1) return {nom: 'M&ecirc;me vintana', t: 'r&eacute;sonance directe, force', c: 'f'};
   return {nom: 'Milamina', t: 'neutre', c: 'x'};
 }
 
@@ -6832,7 +6837,7 @@ function pfAnalyse(n, res, date) {
 // Pastille personnelle du calendrier (indices de PASTILLES) :
 // centre = jour natal <-> jour (Mandratra l'emporte sur Andro manindry),
 // cercle = mois natal <-> jour
-var PASTILLES = ['Manarina', 'Mamelona', 'Milamina', 'Manindry', 'Mandratra'];
+var PASTILLES = ['Manarina', 'Mamelona', 'Milamina', 'Manindry', 'Mandratra', 'M&ecirc;me vintana'];
 
 function pfPastille(n, res, date) {
   var an = pfAnalyse(n, res, date);
@@ -6991,7 +6996,7 @@ function hhmm(ms) {
 
 // Relation d'un vintana horaire avec le vintana natal du jour
 function relHeure(natal, v) {
-  if (natal === v) return {nom: 'M&ecirc;me vintana', t: 'r&eacute;sonance directe', c: 'x'};
+  if (natal === v) return {nom: 'M&ecirc;me vintana', t: 'r&eacute;sonance directe', c: 'f'};
   return pfRel(natal, v, false);
 }
 

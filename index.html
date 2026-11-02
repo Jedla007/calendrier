@@ -370,8 +370,8 @@ try { var thSauve = localStorage.getItem('alimanaka_theme'); if (thSauve) docume
       Meilleurs jours
     </button>
     <button class="tab" id="tabCouple" onclick="showCouple()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.6-9.2A5.3 5.3 0 0 1 12 6.6a5.3 5.3 0 0 1 9.6 4.7c-2.1 4.6-9.6 9.2-9.6 9.2z"/></svg>
-      Couple
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M10 5A7 7 0 1 0 10 19A4 7 0 0 1 10 5Z"/><path d="M14 5A7 7 0 1 1 14 19A4 7 0 0 0 14 5Z"/></svg>
+      Compatibilit&eacute;
     </button>
     <button class="tab" id="tabLieux" onclick="showLieux()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
@@ -7449,7 +7449,7 @@ function showCouple() {
   CAL_ON = false;
   setNav('tabCouple');
   if (PROFILS.length < 2) {
-    el('rp').innerHTML = '<div class="apanel anim"><div class="ptitle">Compatibilit&eacute; de couple</div>' +
+    el('rp').innerHTML = '<div class="apanel anim"><div class="ptitle">Compatibilit&eacute; de vintana</div>' +
       '<div class="ft-p">Il faut au moins deux profils pour comparer deux personnes.</div>' +
       '<button class="btn-p" onclick="pfOpen()">Cr&eacute;er un profil</button></div>';
     return;
@@ -7463,7 +7463,7 @@ function showCouple() {
     }
     return s + '</select>';
   }
-  var html = '<div class="apanel anim"><div class="ptitle">Compatibilit&eacute; de couple</div>' +
+  var html = '<div class="apanel anim"><div class="ptitle">Compatibilit&eacute; de vintana</div>' +
     '<div class="date-row" style="margin-bottom:14px">' + choix('cpA', CP_A, CP_B) + choix('cpB', CP_B, CP_A) + '</div>';
   if (!FADY_RITES || !FADY_RITES.couples) {
     el('rp').innerHTML = html + ftManque() + '</div>';

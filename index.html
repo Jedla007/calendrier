@@ -145,6 +145,8 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.5em;}
 .act span{font-weight:700;flex:none;}
 .aok{background:var(--leaf-t);color:var(--leaf-d);}
 .ank{background:var(--hibi-t);color:var(--hibi-d);}
+.anote{margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--sun-t);font-size:14px;line-height:1.5;}
+.avide{font-size:14px;color:var(--ink2);font-style:italic;}
 .nani-box{background:var(--card2);border-radius:16px;padding:16px;}
 .nani-sub-title{font-weight:700;font-size:15px;color:var(--lagoon-d);margin-bottom:8px;}
 .nani-content{font-size:16px;line-height:1.7;}
@@ -486,19 +488,44 @@ var PLANETE_V = {
   'Alakaosy':'Jupiter', 'Adijady':'Saturne', 'Adalo':'Saturne, Jupiter', 'Alohotsy':'Jupiter'
 };
 
+// Activites par vintana du jour. ok / nok : t = tous les jours du vintana,
+// va / vo / vd = vava, vonto ou vody seulement ; note = precaution ou rite
+// (note_vo : seulement le vonto).
 var VI = {
-  'Alahamady':{desc:'Vintana ambony indrindra. Andro fanjakana sy voninahitra. Tsara indrindra ny andro Alahamady.',ok:['Fanambadiana','Kabary','Varotra','Fanamboarana trano','Dia'],nok:['Tsy misy fady lehibe']},
-  'Adaoro':{desc:'Vintana mahatoky sy mailo. Tsara ho an-dry varotra sy fifanarahana.',ok:['Varotra','Fifanarahana','Dia','Famafy'],nok:['Saina tsy voakinina']},
-  'Adizaoza':{desc:'Vintana mampitambatra. Tsara ho an-ny firaisankina sy fifandraisana.',ok:['Fiaraha-miasa','Fifandraisana','Fiombonan-draharaha'],nok:[]},
-  'Asorotany':{desc:'Rentim-bintana lehibe. Matanjaka sy mamboly fitahiana. Tsara ho an-ny fombafomba lehibe.',ok:['Famorana','Famadihana','Fanambadiana','Rano','Fanao masina'],nok:[]},
-  'Alahasaty':{desc:'Vintana misy laza ratsy. Andro mahery fa mampidi-doza. Aleo miandry andro hafa ho an-ny asa lehibe.',ok:['Fanodikodinam-pivavahana','Fanao tsiambaratelo'],nok:['Fanambadiana','Famorana','Fanamboarana trano','Dia']},
-  'Asombola':{desc:'Vintana mahay asa sy mailo. Tsara ho an-ny asa marim-potoana sy fandalinana.',ok:['Fitantanana','Fitsaboana','Fianarana','Asa tanana'],nok:['Fifaliana be loatra']},
-  'Adimizana':{desc:'Rentim-bintana lehibe. Rariny sy fifandanjana. Tsara indrindra ho an-ny fanapahan-kevitra sy fifanekena.',ok:['Fitsarana','Fanambadiana','Diplomasia','Sonia'],nok:[]},
-  'Alakarabo':{desc:'Vintana hery ara-panahy lehibe. Tsara ho an-ny fanaovana fanao masina sy fibaikoan-tsaina.',ok:['Fanao masina','Fisainana lalina','Fitsaboana ara-panahy'],nok:['Fanambadiana','Fifaliana']},
-  'Alakaosy':{desc:'Vintana mahatahotra indrindra. Hery lehibe ho an-ny mpanao tsiambaratelo fa mampidi-doza ho an-ny olon-tsotra.',ok:['Ody mahery (mpanao tsiambaratelo)'],nok:['Fanambadiana','Fanamboarana','Varotra','Dia','Fifanarahana']},
-  'Adijady':{desc:'Rentim-bintana lehibe. Tambany sy ambony indrindra. Andro ho an-ny mpanjaka sy fitondrana. Tsara indrindra.',ok:['Fanapahan-kevitra','Kabary','Fanamboarana trano','Fanokafana'],nok:['Asa tsy misy dikany']},
-  'Adalo':{desc:'Vintana tsara sy marimarina. Tsara ho an-ny dia sy ny asa faharoa.',ok:['Dia','Fisakaizana','Hevitra vaovao','Asa iombonana'],nok:[]},
-  'Alohotsy':{desc:'Vintana misy loza. Andro saro-dalana sy misy fandrika. Mitandrema tsara.',ok:['Vavaka fiarovana','Fiangonana'],nok:['Fanambadiana','Fifanarahana','Dia','Varotra']}
+  'Alahamady':{desc:'Andron&rsquo;andriana, andro mahery : tsara anaovana ny zavatra rehetra tian-katao.',
+    ok:{t:['Zavatra tian-katao','Fety, firavoravoana'], vo:['Fanantaran-javatra'], vd:['Fanantaran-javatra']}, nok:{}},
+  'Adaoro':{desc:'Andro mena : mety ho alam-baratra na ho main&rsquo;ny afo ny trano atsangana eo.',
+    ok:{t:['Varotra, fandrantoana']}, nok:{t:['Fanorenan-trano']},
+    note:'Raha tsy maintsy manorina : trano kely dorana atao faditra.'},
+  'Adizaoza':{desc:'Andro tsara, marim-ponenana tahaky ny sinibe tsy mihetsika.',
+    ok:{vd:['Fakana vohitra','Fanaovana tamboho','Fanorenan-trano','Fampakaram-bady']}, nok:{}},
+  'Asorotany':{desc:'Renivintana, andro mafy mahery vintana : andro fanaovam-pasana.',
+    ok:{t:['Fanaovam-pasana','Famadihana'], vo:['Fanantaram-pasana']}, nok:{}},
+  'Alahasaty':{desc:'Andro mainty, andron&rsquo;ody.',
+    ok:{vd:['Fanantaran-javatra','Fampakaram-bady']}, nok:{va:['Fanantaran-javatra']}},
+  'Asombola':{desc:'Andro tsara, andro mpila vola sy harena.',
+    ok:{t:['Fanetezana volon-jaza','Varotra'], vd:['Fanantaran-javatra','Fampakaram-bady','Zavatra tian-katao']}, nok:{t:['Lamba mena','Famorana']}},
+  'Adimizana':{desc:'Renivintana mahery, eo amin&rsquo;ny varavarambe ny fitoerany.',
+    ok:{vo:['Fanantaran-javatra','Fampakaram-bady','Fianarana']}, nok:{},
+    note_vo:'Fampakaram-bady : alevina eo ambany tokonana ny vatokilonjy.'},
+  'Alakarabo':{desc:'Andro tsara, andro-mboa : vokatra izay ambolena.',
+    ok:{t:['Fambolena, indrindra hazo mamoa','Fiompiana']}, nok:{}},
+  'Alakaosy':{desc:'Andro mahery, andron&rsquo;andriana : tsara avokoa izay ataon&rsquo;ny andriana.',
+    ok:{t:['Raharahan&rsquo;andriana','Fanambadiana indray rehefa maty vady']}, nok:{t:['Raharahan&rsquo;olon-tsotra']}},
+  'Adijady':{desc:'Renivintana, andro mafy : izay atomboka ka tsy vita anio dia tsy ho vita intsony.',
+    ok:{t:['Fampakaram-bady','Fangalam-bohitra','Fanorenan-trano','Zavatra tiana ho maharitra','Fampidirana harena sy fananana']}, nok:{t:['Asa tsy ho vita anio']}},
+  'Adalo':{desc:'Be ranomaso : izay atao eo dia milalo, ela vao vita.',
+    ok:{}, nok:{t:['Fanombohan-javatra lava']},
+    note:'Raha misy tsy maintsy atao dia atao faingana.'},
+  'Alohotsy':{desc:'Andro maivana, tsy marim-ponenana.',
+    ok:{t:['Fanorenan-trano','Fampakaram-bady','Fanetezana volon-jaza']}, nok:{},
+    note:'Fanorenan-trano : alevina vatokilonjy na hazo mafy eo atsinanan&rsquo;ny andry avaratra.'}
+};
+
+// Regles propres au vintana du mois
+var VI_MOIS = {
+  'Alakaosy':'Volana Alakaosy : volana fadina, tsy anaovana raharaha na an&rsquo;andriana na an&rsquo;olona.',
+  'Alohotsy':'Volam-padina Alohotsy : fady ny raharaha amin&rsquo;ny vava sy vody Alohotsy ; tsy etezana ny volon&rsquo;ankizy mandritra ny volana.'
 };
 
 var MI = {
@@ -6319,7 +6346,7 @@ function calculate() {
   var res  = compute(date);
   var v = res.v, mi = res.mi, moisNom = res.moisNom;
   var delta = res.delta, moon = res.moon, jour = res.jour;
-  var info = VI[v.nom] || {desc: '', ok: [], nok: []};
+  var info = VI[v.nom] || {desc: '', ok: {}, nok: {}};
   var jn = jourNom(v.j, v.total);
   var jours = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
   var moisFr = ['janvier','fevrier','mars','avril','mai','juin',
@@ -6352,14 +6379,22 @@ function calculate() {
   var bl = faste ? 'Faste' : 'N&eacute;faste';
   var isa = ISA_NOM[v.nom + ' ' + jn] || '';
   var maty = (delta >= 28) ? '<div class="pl-note pl-n">&#9888; Volana maty : fin de la lunaison (jour ' + (delta + 1) + '), peu propice aux nouveaux d&eacute;parts.</div>' : '';
-  var okH  = makeActs(info.ok,  'aok', '&#10003;');
-  var nkH  = makeActs(info.nok, 'ank', '&#10007;');
+  // Activites du jour : celles du vintana entier + celles de sa position (vava, vonto, vody)
+  var pos = {Vava: 'va', Vonto: 'vo', Vody: 'vd'}[jn];
+  var okL = (info.ok.t || []).concat(info.ok[pos] || []);
+  var nkL = (info.nok.t || []).concat(info.nok[pos] || []);
+  var notes = [];
+  if (pos === 'va') notes.push('Ny vava no manoto, ny vody tsy misy totoiny : andro mahery ny vava.');
+  if (info.note) notes.push(info.note);
+  if (info['note_' + pos]) notes.push(info['note_' + pos]);
+  if (VI_MOIS[mi.n]) notes.push(VI_MOIS[mi.n]);
 
-  var actsHtml = '';
-  if (info.ok.length || info.nok.length) {
-    actsHtml  = '<div class="apanel anim"><div class="ptitle">Asa amin\'ity andro ity</div>';
-    actsHtml += '<div class="agrid">' + okH + nkH + '</div></div>';
-  }
+  var actsHtml = '<div class="apanel anim"><div class="ptitle">Asa amin\'ity andro ity</div>';
+  actsHtml += (okL.length || nkL.length) ?
+    '<div class="agrid">' + makeActs(okL, 'aok', '&#10003;') + makeActs(nkL, 'ank', '&#10007;') + '</div>' :
+    '<div class="avide">Tsy misy asa voalaza manokana amin&rsquo;ity andro ity.</div>';
+  for (var ni = 0; ni < notes.length; ni++) actsHtml += '<div class="anote">' + notes[ni] + '</div>';
+  actsHtml += '</div>';
 
   el('rp').innerHTML =
     '<div class="vcard ' + fc + ' anim">' +

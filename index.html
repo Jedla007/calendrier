@@ -114,6 +114,15 @@ input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.5em;}
 .pf-box .btn-s{margin-top:8px;}
 .pf-act{display:flex;gap:6px;white-space:nowrap;}
 .pf-suppr{display:block;width:100%;margin-top:8px;color:var(--hibi-d);}
+.tt-box{width:100%;max-width:600px;max-height:calc(100vh - 32px);overflow-y:auto;}
+.tt-nom{font-family:var(--display);font-size:26px;line-height:1.15;}
+.tt-sub{color:var(--ink2);font-size:14px;margin-bottom:6px;}
+.tt-grp{font-family:var(--display);font-size:19px;color:var(--lagoon-d);border-top:2px solid var(--line);margin-top:18px;padding-top:12px;}
+.tt-desc{background:var(--lagoon-t);border-radius:16px;padding:12px 14px;font-size:15px;line-height:1.6;}
+.tt-pos{background:var(--sun-t);border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.5;margin-top:8px;}
+.tt-rel{display:flex;flex-wrap:wrap;gap:6px;}
+.tt-chip{display:inline-block;padding:4px 10px;border-radius:999px;font-size:14px;font-weight:600;}
+.tt-chip.f{background:var(--leaf-t);color:var(--leaf-d);}.tt-chip.n{background:var(--hibi-t);color:var(--hibi-d);}
 
 /* Fiche du jour : l'element fort de la page */
 .vcard{position:relative;background:var(--lagoon-t);border-radius:28px;padding:34px 28px 28px;overflow:hidden;}
@@ -350,6 +359,7 @@ try { var thSauve = localStorage.getItem('alimanaka_theme'); if (thSauve) docume
       </div>
       <select class="pf-sel" id="pfSel" onchange="pfLoad(parseInt(this.value,10))"></select>
       <div class="pf-info" id="pfInfo"></div>
+      <button class="lnk" id="ttLnk" onclick="ttOpen()">Toetra &rsaquo;</button>
       <label class="ptitle field-lbl" for="dp">Date</label>
       <div class="date-row">
         <input type="date" id="dp" min="1600-01-16" max="2050-12-14" onchange="if(this.value)refreshVue(true)"/>
@@ -446,6 +456,12 @@ try { var thSauve = localStorage.getItem('alimanaka_theme'); if (thSauve) docume
     <button class="btn-p" onclick="pfSave()">Enregistrer le profil</button>
     <button class="btn-s" id="pfCancel" onclick="pfClose()">Annuler</button>
     <button class="lnk pf-suppr" id="pfSuppr" onclick="pfSuppr()">Supprimer ce profil</button>
+  </div>
+</div>
+<div class="pf-modal" id="ttModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="ttNom" onclick="if(event.target===this)ttClose()">
+  <div class="panel tt-box">
+    <div id="ttCorps"></div>
+    <button class="btn-s" onclick="ttClose()">Fermer</button>
   </div>
 </div>
 <script>
@@ -6719,6 +6735,46 @@ var MANINDRY = {
   'Alakaosy':[1], 'Adijady':[6], 'Adalo':[3], 'Alohotsy':[4,5]
 };
 
+// desc : toetra ; va / vo / vd : anjara araka ny toerana ; tohana / dratra : vintana manohana / mifandratra
+var TOETRA = {
+  'Alahamady':{desc:'Vintan&rsquo;andriana, ny mahery indrindra. Ny teraka eo dia manana hery sy fahefana, mahasarika ny olona ary mety ho lasa mpitarika. Avo fihevitra sy mora mifanditra, tia hanina tsara, saingy rehefa lehibe dia lasa matotra sy manan-karena. Ny lehilahy henjana teny nefa mora tony ; ny vehivavy tsara fanahy sy malemy paika.',
+    va:'Hery be loatra ka mety hifanandrina amin&rsquo;ny manam-pahefana.', vo:'Ho tratrantitra, na lahy na vavy.', vd:'Ho lasa lehibe sy manan-karena, ary ho tratrantitra.',
+    tohana:['Asombola','Alakarabo'], dratra:['Adimizana']},
+  'Adaoro':{desc:'Vintana mafana, vintan&rsquo;ny afo. Ny teraka eo dia be herim-po, mafana fo ary tia miady hevitra ; mirehitra rehefa miteny ka mahay mikabary. Azo itokiana sy tsy mivadika amin&rsquo;ny teny nomena. Ambinina amin&rsquo;ny varotra. Ny vehivavy be fitiavana, mahalefitra ary tia ny rariny.',
+    va:'Andro mena : tokony hitandrina amin&rsquo;ny afo sy ny fahatezerana.', vd:'Mahay mitondra tena sy mahay miteny ; ny lehilahy mpikabary.',
+    tohana:['Adimizana'], dratra:['Alakarabo']},
+  'Adizaoza':{desc:'Vintana mangatsiaka. Ny teraka eo dia tony sy mora baikoina, matotra ary tsy mivadika, saingy miadana amin&rsquo;ny asa ka mila faharetana mba hahavita izay atomboka. Maro anaka ary mety ho sahirana amin&rsquo;ny fivelomana, nefa raha mandresy ny vintany dia ho tratrantitra sy hanana fianakaviana lehibe. Tsara aminy ny manaja ray aman-dreny. Ny vehivavy mora tezitra sy mitana lolom-po.',
+    va:'Mora miroaroa ka sarotra hahavita zavatra : mila faharetana.', vd:'Ny vehivavy maro anaka ; na lahy na vavy mety ho sahirana amin&rsquo;ny harena.',
+    tohana:['Adijady'], dratra:['Alakaosy']},
+  'Asorotany':{desc:'Vintana mahery sy mafy, vintan&rsquo;ny tany sy ny razana. Ny teraka eo dia hentitra, mafy hevitra ary mitana ny teniny, ka sarotra ifanarahana indraindray ; saro-piaro ary mitahiry lolom-po. Matetika mpandova. Ny lehilahy mahay mandahateny sy manaja olona ; ny vehivavy hentitra sy sarotiny.',
+    va:'Andro mahery indrindra : raha tafita amin&rsquo;ny fahazazana, ho tratrantitra.', vo:'Ho tratrantitra.', vd:'Andro tsara : ho manan-karena sy ho tratrantitra.',
+    tohana:['Adalo','Alakaosy'], dratra:['Adijady']},
+  'Alahasaty':{desc:'Vintana mainty sy vintan&rsquo;ny ody. Ny teraka eo dia mirehareha sy mieboebo, mafy teny nefa tsy dia ratsy fo. Mahavita adidy sy mahay mandamina raharaha. Ambinin-karena amin&rsquo;ny fiompiana sy any ambanivohitra kokoa noho ny amin&rsquo;ny voninahitra. Vitsy anaka. Ny lehilahy mahery vava sy tia dokadoka ; ny vehivavy maranitra vava.',
+    va:'Andro mainty : raha teraka alina dia mety hisarika azy any amin&rsquo;ny ody.', vd:'Andro tsara : ho tratrantitra.',
+    tohana:['Adijady'], dratra:['Adalo']},
+  'Asombola':{desc:'Vintanam-bola sy varotra. Ny teraka eo dia mazoto, mahay mikaroka ary ambinina amin&rsquo;ny varotra sy ny fandrantoana ; mahazo vola fa mora mandany azy koa. Mahihitra ary indraindray tsy dia mangoraka, saingy misy amin&rsquo;izy ireo no feno fahendrena. Ny vehivavy mahay taozavatra, fa mety ho sarotra aminy ny fanambadiana.',
+    va:'Ny lehilahy mpivarotra mahazo vola ; ny vehivavy mpanao asa tanana mitady harena.', vd:'Andro tsara : hanan-karena.',
+    tohana:['Alahamady'], dratra:['Alohotsy']},
+  'Adimizana':{desc:'Vintana mahery, vintan&rsquo;ny mizana. Ny teraka eo dia lalim-pisainana sy mpikaroka, mitsitsy ary mahay mitahiry izay azony. Ny ozona atao aminy dia mivadika ho tsodrano, ka ela velona. Matetika mipetraka lavitra ny ray aman-dreny. Ny vehivavy tia mivoaka, ka tokony hitandrina ny tokantranony.',
+    va:'Ny lehilahy mpivarotra sy mpandranto.', vo:'Andro tsara : ho manan-karena ary tsy ho maty vonoina.', vd:'Andro tsara : ho tratrantitra ka hahita volofotsy.',
+    tohana:['Alohotsy','Adaoro'], dratra:['Alahamady']},
+  'Alakarabo':{desc:'Vintana mahavokatra. Ny teraka eo dia salama, matanjaka ary mpiasa mafy ; olona tsotra. Ambinina amin&rsquo;ny fambolena sy ny fiompiana, ka mety ho manan-karena sy hanana fianakaviana lehibe. Ny lehilahy mpihary ; ny vehivavy sarotiny sy tia haingo.',
+    va:'Vintana mahavokatra loatra.', vd:'Ny vehivavy maro anaka ; ny lehilahy vokatra izay ambolena ; ho tratrantitra.',
+    tohana:['Alahamady'], dratra:['Adaoro']},
+  'Alakaosy':{desc:'Vintana mahery sy vintan&rsquo;ady, ny malaza indrindra sady natahotra indrindra. Ny teraka eo dia mety ho lasa olona ambony sy malaza, saingy mety hifanandrina amin&rsquo;ny ray aman-dreny. Sariaka, tia namana ary mahafoy tena. Ny lehilahy mahery setra sy tia lanonana ; ny vehivavy tia haingo sy sarotiny.',
+    va:'Vava mahery indrindra : mety hifanohitra amin&rsquo;ny ray aman-dreny ; raha tafita dia ho lehibe sy manan-karena.', vd:'Malemilemy kokoa ny vody.',
+    tohana:['Asorotany'], dratra:['Adizaoza']},
+  'Adijady':{desc:'Vintana mafy sy mangina. Ny teraka eo dia tokan-teny, tsy be resaka ary hentitra ; tsy tia fiovana, mahatoky amin&rsquo;ny asany sy ny tokantranony. Mety ho manan-karena. Mora misento sy mijadona.',
+    va:'Mangina loatra, sarotra aminy ny miteny.', vo:'Andro tsara.', vd:'Andro tsara.',
+    tohana:['Alahasaty','Adizaoza'], dratra:['Asorotany']},
+  'Adalo':{desc:'Vintan&rsquo;ny ranomaso sy ny rano. Ny teraka eo dia mora malahelo sy mora mitomany, ary matetika miahanahana. Mitombo haingana ny fianakaviany, fa matetika koa no mitsidika ny fahoriana. Raha mpamboly kosa dia sambatra tanana : maniry tsara izay ambolena.',
+    va:'Vava malemy : tandremana ny fahasalamana amin&rsquo;ny fahazazana.', vd:'Midalodalo kely fa tsara vintana : ho tratrantitra.',
+    tohana:['Asorotany'], dratra:['Alahasaty']},
+  'Alohotsy':{desc:'Vintana maivana. Ny teraka eo dia salama, malemy paika ary tsara endrika, saingy mora miova toerana sy hevitra ; tsy dia azo antoka amin&rsquo;ny raharaha iarahana. Manome fanantenana be fa sarotra tanterahina.',
+    va:'Tsy maharitra toerana, mifindrafindra.', vd:'Andro tsara.',
+    tohana:['Adimizana'], dratra:['Asombola']}
+};
+
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -6748,6 +6804,7 @@ function pfRender() {
     html += '<option value="' + i + '"' + (i === PF_ACTIF ? ' selected' : '') + '>' + esc(PROFILS[i].nom) + '</option>';
   }
   sel.innerHTML = html;
+  el('ttLnk').style.display = PF_ACTIF < 0 ? 'none' : '';
   if (PF_ACTIF < 0) { el('pfInfo').innerHTML = ''; return; }
   var pf = PROFILS[PF_ACTIF];
   var dn = pfDate(pf.naissance), r = compute(dn);
@@ -6759,6 +6816,49 @@ function pfRender() {
     ligne(r.moisNom) +
     ligne((r.delta + 1) + (r.delta === 0 ? '<sup>er</sup>' : '<sup>e</sup>') + ' jour') +
     ligne(jm);
+}
+
+// Fiche Toetra du profil actif : Isa Lava, puis Naninanana en dernier
+function ttOpen() {
+  if (PF_ACTIF < 0) return;
+  var pf = PROFILS[PF_ACTIF];
+  var r = compute(pfDate(pf.naissance));
+  var j = r.v.nom, jn = jourNom(r.v.j, r.v.total), m = r.moisNom;
+  var t = TOETRA[j], tm = TOETRA[m];
+  var pos = t[{Vava: 'va', Vonto: 'vo', Vody: 'vd'}[jn]] || 'Tsy misy voalaza manokana.';
+  var chips = '', i;
+  for (i = 0; i < t.tohana.length; i++) chips += '<span class="tt-chip f">' + t.tohana[i] + '</span>';
+  for (i = 0; i < t.dratra.length; i++) chips += '<span class="tt-chip n">' + t.dratra[i] + '</span>';
+  var html = '<div class="tt-nom" id="ttNom">' + esc(pf.nom) + '</div>' +
+    '<div class="tt-sub">Teraka ' + jn.toLowerCase() + ' ' + j + ', volana ' + m + '</div>' +
+    '<div class="tt-grp">Isa Lava</div>' +
+    '<div class="ft-h">Toetra (vintana andro : ' + j + ')</div>' +
+    '<div class="tt-desc">' + t.desc + '</div>' +
+    '<div class="tt-pos"><b>' + jn + ' ' + j + ' :</b> ' + pos + '</div>';
+  if (m !== j) html += '<div class="ft-h">Vintana volana : ' + m + '</div><div class="ft-p">' + tm.desc.split('. ')[0] + '.</div>';
+  html += '<div class="ft-h">Vintana manohana / mifandratra</div><div class="tt-rel">' + chips + '</div>';
+  // Qualites, metiers et sante : textes importes en malgache (absents des fichiers version 1)
+  var tx = FADY_RITES && FADY_RITES.mg, lib = FT_LIB.mg;
+  html += '<div class="ft-h">Toetra, asa, fahasalamana</div>';
+  if (tx && tx.metiers) {
+    var sa = tx.sante[j];
+    html += '<div class="ft-p"><b>' + lib.qualites + ' :</b> ' + tx.metiers[j].qualites + '</div>' +
+      '<div class="ft-p"><b>' + lib.metiers + ' :</b> ' + tx.metiers[j].metiers + '</div>' +
+      '<div class="ft-box"><b>' + sa.mal + '</b>' + (sa.organes.length ? ' (' + sa.organes.join(', ') + ')' : '') + '<br>' + sa.desc + '</div>';
+  } else {
+    html += ftManque();
+  }
+  // Naninanana : texte Teraka du jour lunaire de naissance, tel quel
+  var lune = Math.min(Math.max(r.delta + 1, 1), 30);
+  var nt = (NANINANANA[lune] || {teraka: ''}).teraka.split('\n').join('<br>');
+  html += '<div class="tt-grp">Naninanana</div>' +
+    '<div class="ft-p" style="margin-top:8px"><b>Teraka faha ' + lune + ' volana :</b> ' + (nt || '-') + '</div>';
+  el('ttCorps').innerHTML = html;
+  el('ttModal').style.display = 'flex';
+}
+
+function ttClose() {
+  el('ttModal').style.display = 'none';
 }
 
 // Lieu du profil actif (Antananarivo par defaut)

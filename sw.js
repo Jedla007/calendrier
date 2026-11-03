@@ -1,7 +1,7 @@
 // Service Worker — Alimanaka PWA
 // Permet le fonctionnement hors-ligne (offline)
 
-var CACHE_NAME = 'alimanaka-v16';
+var CACHE_NAME = 'alimanaka-v17';
 var ASSETS = [
   './index.html',
   './manifest.json',

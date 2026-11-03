@@ -6384,7 +6384,6 @@ function calculate() {
   var okL = (info.ok.t || []).concat(info.ok[pos] || []);
   var nkL = (info.nok.t || []).concat(info.nok[pos] || []);
   var notes = [];
-  if (pos === 'va') notes.push('Ny vava no manoto, ny vody tsy misy totoiny : andro mahery ny vava.');
   if (info.note) notes.push(info.note);
   if (info['note_' + pos]) notes.push(info['note_' + pos]);
   if (VI_MOIS[mi.n]) notes.push(VI_MOIS[mi.n]);
